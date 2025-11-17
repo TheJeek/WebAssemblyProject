@@ -1,0 +1,54 @@
+services:
+  backend:
+    container_name: backend
+    depends_on:
+      postgresdb:
+        condition: service_healthy  # Wait for health check
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    ports:
+      - "8080:8080"
+    environment:
+      - SPRING_PROFILES_ACTIVE=prod
+      - DATABASE_URL=jdbc:postgresql://postgresdb:5432/wasmapp_db
+      - DATABASE_USERNAME=WASM
+      - DATABASE_PASSWORD=WASM
+    networks:
+      - app-network
+    restart: unless-stopped
+
+  frontend:
+    container_name: frontend
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    ports:
+      - "3000:80"
+    depends_on:
+      - backend
+
+  postgresdb:
+    image: postgres:latest
+    container_name: wasmapp-postgresdb
+    environment:
+      POSTGRES_DB: wasmapp_db
+      POSTGRES_USER: WASM
+      POSTGRES_PASSWORD: WASM
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - app-network
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U WASM -d wasmapp_db" ]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+networks:
+  app-network:
+    driver: bridge
+volumes:
+  postgres_data:

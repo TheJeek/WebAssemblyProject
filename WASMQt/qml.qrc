@@ -1,0 +1,8 @@
+<RCC>
+    <qresource prefix="/">
+        <file>qml/Main.qml</file>
+        <file>qml/DynamicBarChart.qml</file>
+        <file>qml/DynamicLineChart.qml</file>
+        <file>qml/UnifiedChart.qml</file>
+    </qresource>
+</RCC>

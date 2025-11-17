@@ -1,0 +1,5 @@
+/qml
+/build
+CMakeLists.txt.user
+WASMQt.pro.user
+WASMQt.user
