@@ -1,7 +1,9 @@
 #include "communicationbridge.h"
 #include <QString>
 #include <QDebug>
+#ifdef __EMSCRIPTEN__
 #include <emscripten.h>
+#endif
 #include <QTimer>
 
 CommunicationBridge gBridge;
@@ -19,13 +21,19 @@ void CommunicationBridge::receiveMessageFromJS(const int &msg) {
 // Sends a QString from Qt to JS
 void CommunicationBridge::sendMessageToJS(const QString &msg) {
     QByteArray utf8 = msg.toUtf8(); // convert QString to UTF-8
+#ifdef __EMSCRIPTEN__
     EM_ASM({
         if (Module.qtCallbacks && Module.qtCallbacks.sendToReact) {
             Module.qtCallbacks.sendToReact(UTF8ToString($0));
         }
     }, utf8.constData());
+#else
+    qDebug() << "JS bridge called (native):" << msg;
+#endif
 }
 
+
+#ifdef __EMSCRIPTEN__
 // Free function wrappers for JS
 extern "C" {
 // JS → Qt bridge
@@ -44,3 +52,4 @@ EMSCRIPTEN_KEEPALIVE
     }
 
 }
+#endif

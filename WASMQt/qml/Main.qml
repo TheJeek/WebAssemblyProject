@@ -2,8 +2,8 @@ import QtQuick 2.15
 import QtQuick.Controls 2.15
 
 Rectangle {
-    width: 800
-    height: 600
+    width: 1600
+    height: 1200
     visible: true
 
     property var chartData: []

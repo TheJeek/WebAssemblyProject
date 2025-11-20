@@ -33,4 +33,4 @@ else: unix:!android: target.path = /opt/$${TARGET}/bin
 
 DISTFILES +=
 
-QMAKE_LFLAGS += -sEXPORTED_RUNTIME_METHODS=ccall,cwrap,_malloc,_free,lengthBytesUTF8,stringToUTF8,callMain
+# QMAKE_LFLAGS += -sEXPORTED_RUNTIME_METHODS=ccall,cwrap,_malloc,_free,lengthBytesUTF8,stringToUTF8,callMain

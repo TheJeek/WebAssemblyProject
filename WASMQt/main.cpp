@@ -7,7 +7,6 @@
 #include <QQmlContext>
 #include "fibonacci.h"
 #include "communicationbridge.h"
-#include <emscripten.h>
 #include <QTimer>
 
 int main(int argc, char *argv[])
