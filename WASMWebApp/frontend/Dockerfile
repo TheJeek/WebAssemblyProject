@@ -1,36 +1,32 @@
 # Author: Jonas Lanz
 # Dockerfile for WebAssembly Web Application frontend
 
-FROM ubuntu:latest
-
 # Build stage
 FROM node:20-alpine AS build
 
-# Set working directory
 WORKDIR /app
 
-# Copy package files
+# Copy package files and install dependencies
 COPY package*.json ./
-
-# Install dependencies
 RUN npm install
 
-# Copy the rest of the app
+# Copy all files and build
 COPY . .
-
-# Build the Vite app for production
 RUN npm run build
 
-# Serve with Nginx
+# Production stage
 FROM nginx:alpine AS production
 
 # Remove default nginx static files
 RUN rm -rf /usr/share/nginx/html/*
 
-# Copy built app from previous stage
+# Copy built app from build stage
 COPY --from=build /app/dist /usr/share/nginx/html
 
-# Expose Nginx port
+# Copy custom nginx config
+COPY nginx.conf /etc/nginx/conf.d/default.conf
+
+# Expose port 80
 EXPOSE 80
 
 # Start Nginx
