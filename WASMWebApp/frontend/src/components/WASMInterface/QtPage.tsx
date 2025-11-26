@@ -58,7 +58,7 @@ export const QtPage : React.FC = () => {
 
     const sendMessageToQt = () => {
         const message = input;
-        qtModuleHook.sendNumberToQt(Number(message))
+        qtModuleHook.sendStringToQt(message)
         setInput("");
     };
 

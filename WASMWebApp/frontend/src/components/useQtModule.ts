@@ -52,16 +52,41 @@ export function useQtModule() {
         jsToQtQueue.current.push(msg);
     }, []);
 
+
+    // Number is directly passed as an argument on the stack
     const sendNumberToQt = (value: number) => {
         const Module = qtModuleRef.current;
         if (!Module || !Module._receiveNumberFromJS) return;
 
-        Module._receiveNumberFromJS(value); // just pass the number
+        Module._receiveNumberFromJS(value);
+    };
+
+    // JS Strings are objects in memory (not linear) and wasm only knows linear memory so the JS string needs to be encoded and memory needs to be allocated in wasm to hold those bytes + make sure to free that memory again
+    // For this function to work the WASM app needs to be compiled with QT_WASM_EXTRA_EXPORTED_METHODS = ccall,cwrap,stringToUTF8,lengthBytesUTF8 and EXPORTED_FUNCTIONS=_main,_malloc,_free
+    // Config file location: Qt\6.10.0\wasm_multithread\mkspecs\features\wasm\wasm.prf
+    const sendStringToQt = (str: string) => {
+        const Module = qtModuleRef.current;
+
+        if (!Module) return;
+
+        // Allocate enough bytes for UTF-8 string + null terminator
+        const size = Module.lengthBytesUTF8(str) + 1;
+        const ptr = Module._malloc(size);
+
+        // Copy JS string into WASM app
+        Module.stringToUTF8(str, ptr, size);
+
+        // Call Qt function
+        Module._receiveStringFromJS(ptr);
+
+        // Free memory
+        Module._free(ptr);
     };
 
 
     return {
         sendNumberToQt,
+        sendStringToQt,
         sendToQt,
         setupCallbacks,
         onMessageFromQt,
