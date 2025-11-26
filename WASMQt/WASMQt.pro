@@ -31,6 +31,9 @@ qnx: target.path = /tmp/$${TARGET}/bin
 else: unix:!android: target.path = /opt/$${TARGET}/bin
 !isEmpty(target.path): INSTALLS += target
 
-DISTFILES +=
-
-# QMAKE_LFLAGS += -sEXPORTED_RUNTIME_METHODS=ccall,cwrap,_malloc,_free,lengthBytesUTF8,stringToUTF8,callMain
+# Config file location: Qt\6.10.0\wasm_multithread\mkspecs\features\wasm\wasm.prf
+contains(QMAKE_CXX, em++) {
+    message("Building for Emscripten / WASM")
+    QT_WASM_EXTRA_EXPORTED_METHODS = ccall,cwrap,stringToUTF8,lengthBytesUTF8
+    QMAKE_LFLAGS += -sEXPORTED_FUNCTIONS=_main,_malloc,_free
+}

@@ -44,6 +44,12 @@ EMSCRIPTEN_KEEPALIVE
         // Do whatever you want with the number
     }
 
+EMSCRIPTEN_KEEPALIVE
+    void receiveStringFromJS(const char* msg) {
+    QString qmsg = QString::fromUtf8(msg);
+    qDebug() << "[Qt] Received String from JS:" << qmsg;
+}
+
 // Qt -> JS bridge
 EMSCRIPTEN_KEEPALIVE
     void sendMessageToJS(const char* msg) {
