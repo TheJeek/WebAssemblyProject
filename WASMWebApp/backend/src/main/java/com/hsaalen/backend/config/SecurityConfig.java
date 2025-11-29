@@ -21,6 +21,7 @@ public class SecurityConfig {
                 .csrf(csrf -> csrf.disable()) // disable CSRF for dev/testing
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/api/files/**").permitAll() // allow file endpoints
+                        .requestMatchers("/api/**").permitAll()
                         .anyRequest().authenticated()
                 )
                 .httpBasic(Customizer.withDefaults());

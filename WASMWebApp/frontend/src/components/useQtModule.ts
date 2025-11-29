@@ -3,9 +3,10 @@ import { useRef, useCallback } from "react";
 // Hook only handles sending messages to Qt and setting up callbacks
 export function useQtModule() {
     const qtModuleRef = useRef<any>(null);
-    const callbacksRef = useRef<{ sendToReact?: (msg: string) => void }>({});
-
-    const jsToQtQueue = useRef<string[]>([]);
+    const callbacksRef = useRef<{
+        sendToReact?: (msg: string) => void;
+        addMarkerFromQt?: (lat: number, lon: number) => void;
+    }>({});
 
     // Setup callbacks object for Qt
     const setupCallbacks = useCallback((Module: any) => {
@@ -28,18 +29,12 @@ export function useQtModule() {
             }
         }
 
-        Module.qtCallbacks.pullFromJsQueue = () => {
-            if (!jsToQtQueue.current.length) return null;
-            return jsToQtQueue.current.shift(); // Return first message
+        // Add a callback for receiving a marker from C++
+        Module.qtCallbacks.addMarker = (lat: number, lon: number) => {
+            if (callbacksRef.current.addMarkerFromQt) {
+                callbacksRef.current.addMarkerFromQt(lat, lon);
+            }
         };
-        /*
-        Module.qtCallbacks = {
-            sendToReact: (msg: string) => {
-                if (callbacksRef.current.sendToReact) {
-                    callbacksRef.current.sendToReact(msg);
-                }
-            },
-        };*/
     }, []);
 
     // Register callback for receiving messages from Qt
@@ -47,9 +42,9 @@ export function useQtModule() {
         callbacksRef.current.sendToReact = cb;
     }, []);
 
-    // Send string to Qt
-    const sendToQt = useCallback((msg: string) => {
-        jsToQtQueue.current.push(msg);
+    // Register callback specifically for receiving markers from Qt
+    const onMarkerFromQt = useCallback((cb: (lat: number, lon: number) => void) => {
+        callbacksRef.current.addMarkerFromQt = cb;
     }, []);
 
 
@@ -87,9 +82,9 @@ export function useQtModule() {
     return {
         sendNumberToQt,
         sendStringToQt,
-        sendToQt,
         setupCallbacks,
         onMessageFromQt,
+        onMarkerFromQt,
         qtModule: qtModuleRef.current,
     };
 }

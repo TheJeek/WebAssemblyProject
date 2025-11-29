@@ -3,6 +3,7 @@ import {Link, Routes, Route} from "react-router-dom";
 import {Button} from "./components/ui/button.tsx";
 import {QtTest} from "./components/WASMInterface/QtTest.tsx";
 import {FileUpload} from "./components/FileUpload/FileUpload.tsx";
+import MapComponent from "@/components/Map/MapComponent.tsx";
 
 
 function App() {
@@ -10,10 +11,15 @@ function App() {
         <>
             <nav className="border-b bg-background text-card-foreground">
                 <div className="flex items-center justify-between p-4">
-                    <div className="flex items-center gap-4">
+                    <div className="flex items-center gap-4" style={{width: "100vw" }}>
                         <Link to="/">
                             <Button>
-                                Canvas
+                                Chart
+                            </Button>
+                        </Link>
+                        <Link to="/map">
+                            <Button>
+                                Map
                             </Button>
                         </Link>
                         <Link to="/html-test">
@@ -33,6 +39,7 @@ function App() {
                 <Route path="/" element={<Home />} />
                 <Route path="/html-test" element={<QtTest />} />
                 <Route path={"/upload-download"} element={<FileUpload />} />
+                <Route path="/map" element={<MapComponent />} />
             </Routes>
         </>
     );
