@@ -2,15 +2,15 @@ import React, {useState, useRef, useEffect} from "react";
 import {MapContainer, TileLayer, Marker, Polyline, useMapEvents, Popup} from "react-leaflet";
 import L, {type LatLngExpression } from "leaflet";
 import {Button} from "@/components/ui/button.tsx";
-import {useQtModule} from "@/components/useQtModule.ts";
+import {useQtMapModule} from "@/components/Map/useQtMapModule.ts";
 
 type Path = LatLngExpression[];
 
 const MapComponent: React.FC = () => {
     const containerRef = useRef<HTMLDivElement>(null);
     const hasInitialized = useRef(false);
-    const qtModuleHook = useQtModule();
-    const [toggleDelete, setToggleDelete] = useState(false);
+    const qtModuleHook = useQtMapModule();
+    let [toggleDelete, setToggleDelete] = useState(false);
 
     useEffect(() => {
         if (hasInitialized.current) return;
@@ -222,12 +222,10 @@ const MapComponent: React.FC = () => {
         useMapEvents({
             click(e) {
                 const { lat, lng } = e.latlng;
-
                 if (!toggleDelete) {
                     // Add marker
                     setMarkers((prev) => [...prev, [lat, lng]]);
-                    // tspAlgorithm.addCoordinate(lat, lng); // <-- future C++ function here (coords saved in tspAlgorithm)
-                    console.log("Added marker at", lat, lng);
+                    qtModuleHook.addCoordinateToQt(lat, lng);
                 } else {
                     // Delete closest marker
                     let minDistance = Infinity;
@@ -243,7 +241,7 @@ const MapComponent: React.FC = () => {
                     if (closestIndex !== -1) {
                         const removed = markers[closestIndex];
                         setMarkers((prev) => prev.filter((_, i) => i !== closestIndex));
-                        // tspAlgorithm.removeCoordinate(removed[0], removed[1]); // <-- C++ call
+                        qtModuleHook.removeCoordinateToQt(removed[0], removed[1]);
                         console.log("Removed marker at", removed);
                     }
                 }
@@ -252,15 +250,67 @@ const MapComponent: React.FC = () => {
         return null;
     };
 
-    qtModuleHook.onMarkerFromQt((lat, lon) => {
+    qtModuleHook.onToggleDeleteFromQt( () => {
+        console.log("JS: toggleDelete")
+        setToggleDelete(!toggleDelete);
+    })
+
+    qtModuleHook.onAddMarkerFromQt((lat, lon) => {
         addMarker(lat, lon);
+    })
+
+    qtModuleHook.onClearNNPathFromQt(() => {
+        console.log("JS: clearNNPath")
+        clearNNPath()
+    })
+
+    qtModuleHook.onAddPointToNNPathFromQt((lat, lon) => {
+        console.log("JS: addPointToNNPath", lat, lon)
+        addPointToNNPath(lat, lon);
+    })
+
+    qtModuleHook.onClearOptimizedNNFromQt(() => {
+        console.log("JS: clearOptimizedNNPath")
+        clearOptimizedNN()
+    })
+
+    qtModuleHook.onAddPointToOptimizedNNPathFromQt((lat, lon) => {
+        console.log("JS: addPointToOptimizedNNPath", lat, lon)
+        addPointToOptimizedNNPath(lat, lon);
+    })
+
+    qtModuleHook.onClearMSTPathFromQt(() => {
+        console.log("JS: clearMSTPath")
+        clearMSTPath();
+    })
+
+    qtModuleHook.onAddPointToMSTPathFromQt((lat, lon) => {
+        console.log("JS: addPointToMSTPath", lat, lon)
+        addPointToMSTPath(lat, lon);
+    })
+
+    qtModuleHook.onClearOptimizedMSTPathFromQt(() => {
+        console.log("JS: clearOptimizedMSTPath")
+        clearOptimizedMST();
+    })
+
+    qtModuleHook.onAddPointToOptimizedMSTPathFromQt((lat, lon) => {
+        console.log("JS: addPointToOptimizedMSTPath", lat, lon)
+        addPointToOptimizedMSTPath(lat, lon);
+    })
+
+    qtModuleHook.onClearDPPathFromQt(() => {
+        console.log("JS: clearDPPath")
+        clearDPPath();
+    })
+
+    qtModuleHook.onAddPointToDPPathFromQt((lat, lon) => {
+        console.log("JS: addPointToDPPath", lat, lon)
+        addPointToDPPath(lat, lon);
     })
 
     return (
         <div style={{ display: "flex", height: "100vh", width: "100vw" }}>
-            <Button onClick={addNNExample}>
-                DO NN
-            </Button>
             {/* Left: Leaflet map */}
             <div style={{
                 height: "100%",
