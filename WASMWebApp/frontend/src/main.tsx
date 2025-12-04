@@ -20,7 +20,7 @@ const DefaultIcon = L.icon({
     shadowSize: [41, 41],
 });
 
-// Set it as the default for all markers
+// Set it as the default for all markers (Leaflet so it works when deployed or in Vite)
 L.Marker.prototype.options.icon = DefaultIcon;
 
 createRoot(document.getElementById('root')!).render(

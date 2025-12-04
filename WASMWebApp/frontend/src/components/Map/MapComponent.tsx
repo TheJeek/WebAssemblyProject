@@ -31,7 +31,7 @@ const MapComponent: React.FC = () => {
             // Provide the container for Qt windows
             Module.qtContainerElements = [containerRef.current];
 
-            // So Qt can find WASM/data files (in public folder)
+            // So Qt can find WASM/data files (currently in public folder)
             Module.locateFile = (path: string) => `/map/${path}`;
 
             // Callback when WASM runtime is ready
@@ -70,7 +70,7 @@ const MapComponent: React.FC = () => {
     const [mstPath, setMSTPath] = useState<Path>([]);
     const [mstLine, setMSTLine] = useState<Path | null>(null);
 
-    const [minimumSpanningTreePathList, setMSTList] = useState<Path[]>([]);
+    const [mstTrailList, setMSTList] = useState<Path[]>([]);
     const [mapLinesMST, setMapLinesMST] = useState<Path[]>([]);
 
     const [bruteForcePath, setBFPath] = useState<Path>([]);
@@ -96,6 +96,9 @@ const MapComponent: React.FC = () => {
     const colorBF = "black";
     const colorDP = "orange";
 
+    //[...prev, [lat, lon]] is a react pattern
+    //[...prev] => copy of old array/state
+    //[...prev, [lat, lon]] adds new on top
     const addMarker = (lat: number, lon: number) =>
         setMarkers(prev => [...prev, [lat, lon]]);
 
@@ -106,7 +109,7 @@ const MapComponent: React.FC = () => {
     const addPointToMSTPath = (lat: number, lon: number) =>
         setMSTPath(prev => [...prev, [lat, lon]]);
 
-    const addPointToBruteForcePath = (lat: number, lon: number) =>
+    const addPointToBFPath = (lat: number, lon: number) =>
         setBFPath(prev => [...prev, [lat, lon]]);
 
     const addPointToOptimizedNNPath = (lat: number, lon: number) =>
@@ -119,7 +122,6 @@ const MapComponent: React.FC = () => {
         setDPPath(prev => [...prev, [lat, lon]]);
 
 
-
     const clearNNPath = () => {
         setNNPath([]);
         setNNLine(null);
@@ -128,7 +130,7 @@ const MapComponent: React.FC = () => {
         setMSTPath([]);
         setMSTLine(null);
     };
-    const clearBruteForcePath = () => {
+    const clearBFPath = () => {
         setBFPath([]);
         setBFLine(null);
     };
@@ -144,25 +146,17 @@ const MapComponent: React.FC = () => {
         setDPPath([]);
         setDPLine(null);
     };
-    const clearMarkers = () => setMarkers([]);
 
 
-    function addNNExample() {
-        clearNNPath()
-        addPointToNNPath(40,10);
-        addPointToNNPath(41,12);
-        addPointToNNPath(42,11);
-        addPointToNNPath(40,10);
-        addMarker(40, 10);
-        addMarker(41, 12);
-        addMarker(42, 11);
-    }
-    function addNNExample2() {
-        clearNNPath()
-        addPointToNNPath(47,10);
-        addPointToNNPath(48,12);
-        addPointToNNPath(49,11);
-    }
+    const addTrailToMST = (lat1: number, lon1: number, lat2: number, lon2: number) => {
+        const newTrail: Path = [
+            [lat1, lon1],
+            [lat2, lon2]
+        ];
+        setMSTList(prev => [...prev, newTrail]);
+    };
+
+    const clearMST = () => setMSTList([]);
 
     // Nearest Neighbor
     useEffect(() => {
@@ -172,6 +166,16 @@ const MapComponent: React.FC = () => {
             setNNLine(null);
         }
     }, [nearestNeighborPath]);
+
+    useEffect(() => {
+        if (mstTrailList.length > 0) {
+            setMapLinesMST(mstTrailList);
+            console.log("MST updated:", mapLinesMST);
+        }
+        else {
+            setMapLinesMST([]);
+        }
+    }, [mstTrailList]);
 
     // MST Path
     useEffect(() => {
@@ -299,6 +303,16 @@ const MapComponent: React.FC = () => {
         addPointToOptimizedMSTPath(lat, lon);
     })
 
+    qtModuleHook.onClearBFPathFromQt(() => {
+        console.log("JS: clearBFPath")
+        clearBFPath();
+    })
+
+    qtModuleHook.onAddPointToBFPathFromQt((lat, lon) => {
+        console.log("JS: addPointToBFPath", lat, lon)
+        addPointToBFPath(lat, lon);
+    })
+
     qtModuleHook.onClearDPPathFromQt(() => {
         console.log("JS: clearDPPath")
         clearDPPath();
@@ -308,6 +322,17 @@ const MapComponent: React.FC = () => {
         console.log("JS: addPointToDPPath", lat, lon)
         addPointToDPPath(lat, lon);
     })
+
+    qtModuleHook.onClearMSTFromQt(() => {
+        console.log("JS: clearMST")
+        clearMST();
+    })
+
+    qtModuleHook.onAddTrailToMSTFromQt((lat1, lon1, lat2, lon2) => {
+        console.log("JS: addTrailToMST", lat1, lon1, lat2, lon2)
+        addTrailToMST(lat1, lon1, lat2, lon2);
+    })
+
 
     return (
         <div style={{ display: "flex", height: "100vh", width: "100vw" }}>
@@ -335,14 +360,13 @@ const MapComponent: React.FC = () => {
                         </Marker>
                     ))}
 
-
                     {nearestNeighborLine && <Polyline positions={nearestNeighborLine} color={colorNN} />}
                     {mstLine && <Polyline positions={mstLine} color={colorMSTPath} />}
-                    {mapLinesMST.map((line, i) => <Polyline key={`mstline-${i}`} positions={line} color={colorMST} />)}
                     {bruteForceLine && <Polyline positions={bruteForceLine} color={colorBF} />}
                     {optimizedNNLine && <Polyline positions={optimizedNNLine} color={colorOptimizedNN} />}
                     {optimizedMSTLine && <Polyline positions={optimizedMSTLine} color={colorOptimizedMSTPath} />}
                     {dpLine && <Polyline positions={dpLine} color={colorDP} />}
+                    {mapLinesMST.map((line, i) => <Polyline key={`mstline-${i}`} positions={line} color={colorMST} />)}
                 </MapContainer>
             </div>
 

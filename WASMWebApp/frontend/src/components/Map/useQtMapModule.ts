@@ -15,8 +15,12 @@ export function useQtMapModule() {
         addPointToMSTPathFromQt?: (lat: number, lon: number) => void;
         clearOptimizedMSTPathFromQt?: () => void;
         addPointToOptimizedMSTPathFromQt?: (lat: number, lon: number) => void;
+        clearBFPathFromQt?: () => void;
+        addPointToBFPathFromQt?: (lat: number, lon: number) => void;
         clearDPPathFromQt?: () => void;
         addPointToDPPathFromQt?: (lat: number, lon: number) => void;
+        clearMSTFromQt?: () => void;
+        addTrailToMSTFromQt?: (lat1: number, lon1: number, lat2: number, lon2: number) => void;
     }>({});
 
     // Setup callbacks object for Qt
@@ -110,17 +114,45 @@ export function useQtMapModule() {
             }
         };
 
-        // Add a callback for clearing MST Path from Qt
+        // Add a callback for clearing Brute Force Path from Qt
+        Module.qtCallbacks.clearBFPath = () => {
+            if (callbacksRef.current.clearBFPathFromQt) {
+                callbacksRef.current.clearBFPathFromQt();
+            }
+        };
+
+        // Add a callback for adding a Coordinate Point to Brute Force Path from Qt
+        Module.qtCallbacks.addPointToBFPath = (lat: number, lon: number) => {
+            if (callbacksRef.current.addPointToBFPathFromQt) {
+                callbacksRef.current.addPointToBFPathFromQt(lat, lon);
+            }
+        };
+
+        // Add a callback for clearing Dynamic Programming Path from Qt
         Module.qtCallbacks.clearDPPath = () => {
             if (callbacksRef.current.clearDPPathFromQt) {
                 callbacksRef.current.clearDPPathFromQt();
             }
         };
 
-        // Add a callback for adding a Coordinate Point to MST Path from Qt
+        // Add a callback for adding a Coordinate Point to Dynamic Programming Path from Qt
         Module.qtCallbacks.addPointToDPPath = (lat: number, lon: number) => {
             if (callbacksRef.current.addPointToDPPathFromQt) {
                 callbacksRef.current.addPointToDPPathFromQt(lat, lon);
+            }
+        };
+
+        // Add a callback for clearing MST from Qt
+        Module.qtCallbacks.clearMST = () => {
+            if (callbacksRef.current.clearMSTFromQt) {
+                callbacksRef.current.clearMSTFromQt();
+            }
+        };
+
+        // Add a callback for adding a Trail to MST from Qt
+        Module.qtCallbacks.addTrailToMST = (lat1: number, lon1: number, lat2: number, lon2: number) => {
+            if (callbacksRef.current.addTrailToMSTFromQt) {
+                callbacksRef.current.addTrailToMSTFromQt(lat1, lon1, lat2, lon2);
             }
         };
     }, []);
@@ -180,6 +212,16 @@ export function useQtMapModule() {
         callbacksRef.current.addPointToOptimizedMSTPathFromQt = cb;
     }, []);
 
+    // Register callback for clearing Brute Force Path from Qt
+    const onClearBFPathFromQt = useCallback((cb: () => void) => {
+        callbacksRef.current.clearBFPathFromQt = cb;
+    }, []);
+
+    // Register callback for adding Coordinate to Brute Force Path
+    const onAddPointToBFPathFromQt = useCallback((cb: (lat: number, lon: number) => void) => {
+        callbacksRef.current.addPointToBFPathFromQt = cb;
+    }, []);
+
     // Register callback for clearing Dynamic Programming Path from Qt
     const onClearDPPathFromQt = useCallback((cb: () => void) => {
         callbacksRef.current.clearDPPathFromQt = cb;
@@ -188,6 +230,16 @@ export function useQtMapModule() {
     // Register callback for adding Coordinate to Dynamic Programming Path
     const onAddPointToDPPathFromQt = useCallback((cb: (lat: number, lon: number) => void) => {
         callbacksRef.current.addPointToDPPathFromQt = cb;
+    }, []);
+
+    // Register callback for clearing MST from Qt
+    const onClearMSTFromQt = useCallback((cb: () => void) => {
+        callbacksRef.current.clearMSTFromQt = cb;
+    }, []);
+
+    // Register callback for adding Coordinate to Dynamic Programming Path
+    const onAddTrailToMSTFromQt = useCallback((cb: (lat1: number, lon1: number, lat2: number, lon2: number) => void) => {
+        callbacksRef.current.addTrailToMSTFromQt = cb;
     }, []);
 
 
@@ -257,8 +309,12 @@ export function useQtMapModule() {
         onAddPointToMSTPathFromQt,
         onClearOptimizedMSTPathFromQt,
         onAddPointToOptimizedMSTPathFromQt,
+        onClearBFPathFromQt,
+        onAddPointToBFPathFromQt,
         onClearDPPathFromQt,
         onAddPointToDPPathFromQt,
+        onClearMSTFromQt,
+        onAddTrailToMSTFromQt,
         qtModule: qtModuleRef.current,
     };
 }
