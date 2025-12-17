@@ -1,93 +1,80 @@
-import QtQuick
-import QtQuick.Controls
-import QtCharts
+import QtQuick 2.15
+import QtQuick.Controls 2.15
 
-Rectangle {
+Page {
+    width: 1600
+    height: 1200
     visible: true
-    width: 800
-    height: 600
-
-    Column {
-        anchors.centerIn: parent
-        spacing: 20
-
-        Row {
-            spacing: 10
-            TextField {
-                id: inputField
-                placeholderText: "Enter n"
-                width: 100
-                inputMethodHints: Qt.ImhDigitsOnly
-            }
-            Button {
-                text: "Compute"
-                onClicked: {
-                    chartData = fibonacci.computeSeries(parseInt(inputField.text))
-                }
-            }
-
-            ComboBox {
-                id: chartSelector
-                model: ["Line", "Bar", "Scatter"]
-            }
+    background: Rectangle {
+            color: "#2b2b2b"
         }
-
-        Loader {
-            id: chartLoader
-            sourceComponent: chartSelector.currentText === "Line" ? lineChart :
-                             chartSelector.currentText === "Bar" ? barChart :
-                             scatterChart
-        }
-    }
 
     property var chartData: []
 
-    Component {
-        id: lineChart
-        ChartView {
-            anchors.fill: parent
-            title: "Fibonacci Values (Line Chart)"
-            LineSeries {
-                name: "Value"
-                XYPoint { x: 0; y: 0 }
-                Component.onCompleted: {
-                    clear()
-                    for (let d of chartData)
-                        append(d.index, d.value)
-                }
-            }
+    onChartDataChanged: {
+        if (chartLoader.item) {
+            Qt.callLater(function() {
+                chartLoader.item.data = chartData
+            })
         }
     }
 
-    Component {
-        id: barChart
-        ChartView {
-            anchors.fill: parent
-            title: "Computation Duration (Bar Chart)"
-            BarSeries {
-                BarSet {
-                    label: "Duration (ms)"
-                    Component.onCompleted: {
-                        clear()
-                        for (let d of chartData)
-                            append(d.duration)
+    Row {
+        anchors.centerIn: parent
+        spacing: 20
+
+
+        // Left: Chart controls
+        Column {
+            spacing: 12
+
+            Button {
+                text: "Log Data"
+                onClicked: {
+                    for (var i = 0; i < chartModel.count; ++i) {
+                        var d = chartModel.get(i)
+                        console.log(`n=${d.index} fib=${d.value} dur=${d.duration/1000}`)
                     }
                 }
             }
-        }
-    }
 
-    Component {
-        id: scatterChart
-        ChartView {
-            anchors.fill: parent
-            title: "Index vs Duration (Scatter)"
-            ScatterSeries {
-                Component.onCompleted: {
-                    clear()
-                    for (let d of chartData)
-                        append(d.index, d.duration)
+            Row {
+                spacing: 10
+                TextField {
+                    id: inputField
+                    placeholderText: "Enter n"
+                    width: 100
+                    inputMethodHints: Qt.ImhDigitsOnly
                 }
+                Button {
+                    text: "Compute"
+                    onClicked: {
+                        var series = fibonacci.computeSeries(parseInt(inputField.text))
+                        Qt.callLater(function() {
+                            chartData = series
+                            if (chartLoader.item)
+                                chartLoader.item.data = chartData
+                        })
+                    }
+                }
+                ComboBox {
+                    id: chartSelector
+                    model: ["Bar", "Line"]
+                }
+            }
+
+            Loader {
+                id: chartLoader
+                anchors.horizontalCenter: parent.horizontalCenter
+                width: 700
+                height: 500
+                source: chartSelector.currentText === "Bar"
+                    ? "qrc:/qml/DynamicBarChart.qml"
+                    : "qrc:/qml/DynamicLineChart.qml"
+
+                onLoaded: Qt.callLater(function() {
+                    item.data = chartModel
+                })
             }
         }
     }
