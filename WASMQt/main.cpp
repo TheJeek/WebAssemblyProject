@@ -7,24 +7,30 @@
 #include <QQmlContext>
 #include "fibonacci.h"
 #include "communicationbridge.h"
+#include "manorboy.h"
+#include "manorboyoptimized.h"
 #include <QTimer>
+#include "globals.h"
 
 int main(int argc, char *argv[])
 {
     QApplication app(argc, argv);
 
     Fibonacci fib;
-    CommunicationBridge bridge;
+    ManOrBoy mob;
+    ManOrBoyOptimized mobo;
 
     QQuickView viewer;
-    viewer.setMinimumSize({600, 400});
+    viewer.setMinimumSize({1200, 800});
     QObject::connect(viewer.engine(), &QQmlEngine::quit, &viewer, &QWindow::close);
 
     viewer.engine()->rootContext()->setContextProperty("fibonacci", &fib);
-    viewer.engine()->rootContext()->setContextProperty("communicationbridge", &bridge);
+    viewer.engine()->rootContext()->setContextProperty("mob", &mob);
+    viewer.engine()->rootContext()->setContextProperty("mobopt", &mobo);
+    viewer.engine()->rootContext()->setContextProperty("communicationBridge", &cBridge);
 
-    viewer.setTitle(QStringLiteral("Algorithm Visualization"));
-    viewer.setSource(QUrl("qrc:/qml/Main.qml"));
+    viewer.setTitle(QStringLiteral("Comparison WASM vs Native"));
+    viewer.setSource(QUrl("qrc:/qml/Homepage.qml"));
     viewer.setResizeMode(QQuickView::SizeRootObjectToView);
     viewer.show();
 

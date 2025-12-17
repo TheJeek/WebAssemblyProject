@@ -6,16 +6,20 @@
 #endif
 #include <QTimer>
 
-CommunicationBridge gBridge;
-
 CommunicationBridge::CommunicationBridge(QObject* parent)
     : QObject(parent)
 {
 }
 
 // Called from C++ internally or from wrapper
-void CommunicationBridge::receiveMessageFromJS(const int &msg) {
-    qDebug() << "[Qt] Received from JS:" << msg;
+void CommunicationBridge::receiveMessageFromJS(const QString &msg) {
+    qDebug() << "[Qt] Received String from JS:" << msg;
+    emit stringReceived(msg);
+}
+
+void CommunicationBridge::receiveNumberFromJS(const int &number) {
+    qDebug() << "[Qt] Received from JS:" << number;
+    emit numberReceived(number);
 }
 
 // Sends a QString from Qt to JS
@@ -32,6 +36,7 @@ void CommunicationBridge::sendMessageToJS(const QString &msg) {
 #endif
 }
 
+#include "globals.h"
 
 #ifdef __EMSCRIPTEN__
 // Free function wrappers for JS
@@ -40,21 +45,20 @@ extern "C" {
 // malloc, ccall, lenthBytesUTF8 "EXPORTED_RUNTIME_METHODS" cannot be set (override by Qt) so Strings are currently not an option JS -> Qt
 EMSCRIPTEN_KEEPALIVE
     void receiveNumberFromJS(int value) {
-        qDebug() << "[Qt] Received number from JS:" << value;
-        // Do whatever you want with the number
+        cBridge.numberReceived(value);
     }
 
 EMSCRIPTEN_KEEPALIVE
     void receiveStringFromJS(const char* msg) {
-    QString qmsg = QString::fromUtf8(msg);
-    qDebug() << "[Qt] Received String from JS:" << qmsg;
-}
+        QString qmsg = QString::fromUtf8(msg);
+        cBridge.receiveMessageFromJS(qmsg);
+    }
 
 // Qt -> JS bridge
 EMSCRIPTEN_KEEPALIVE
     void sendMessageToJS(const char* msg) {
         QString qmsg = QString::fromUtf8(msg);
-        gBridge.sendMessageToJS(qmsg);
+        cBridge.sendMessageToJS(qmsg);
     }
 
 }
