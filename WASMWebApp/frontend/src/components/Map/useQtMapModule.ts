@@ -6,6 +6,7 @@ export function useQtMapModule() {
     const callbacksRef = useRef<{
         sendToReact?: (msg: string) => void;
         toggleDeleteFromQt?: () => void;
+        clearMarkersFromQt?: () => void;
         addMarkerFromQt?: (lat: number, lon: number) => void;
         clearNNPathFromQt?: () => void;
         addPointToNNPathFromQt?: (lat: number, lon: number) => void;
@@ -21,6 +22,8 @@ export function useQtMapModule() {
         addPointToDPPathFromQt?: (lat: number, lon: number) => void;
         clearMSTFromQt?: () => void;
         addTrailToMSTFromQt?: (lat1: number, lon1: number, lat2: number, lon2: number) => void;
+        openJsonFilePickerFromQt?: () => void;
+        downloadJsonFromQt?: () => void;
     }>({});
 
     // Setup callbacks object for Qt
@@ -48,6 +51,12 @@ export function useQtMapModule() {
         Module.qtCallbacks.addMarker = (lat: number, lon: number) => {
             if (callbacksRef.current.addMarkerFromQt) {
                 callbacksRef.current.addMarkerFromQt(lat, lon);
+            }
+        };
+
+        Module.qtCallbacks.clearMarkers = () => {
+            if (callbacksRef.current.clearMarkersFromQt) {
+                callbacksRef.current.clearMarkersFromQt();
             }
         };
 
@@ -155,6 +164,57 @@ export function useQtMapModule() {
                 callbacksRef.current.addTrailToMSTFromQt(lat1, lon1, lat2, lon2);
             }
         };
+
+
+        // Load Json File into Qt App
+        Module.qtCallbacks.openJsonFilePicker = () => {
+            const input = document.createElement("input");
+            input.type = "file";
+            input.accept = ".json,application/json";
+
+            input.onchange = () => {
+                const file = input.files?.[0];
+                if (!file) return;
+
+                const reader = new FileReader();
+                reader.onload = () => {
+                    const content = reader.result as string;
+
+                    // Send string back to Qt
+                    // Allocate enough bytes for UTF-8 string + null terminator
+                    const size = Module.lengthBytesUTF8(content) + 1;
+                    const ptr = Module._malloc(size);
+
+                    // Copy JS string into WASM app
+                    Module.stringToUTF8(content, ptr, size);
+
+                    // Call Qt function
+                    Module._receiveJsonFromJS(ptr);
+
+                    // Free memory
+                    Module._free(ptr);
+                };
+
+                reader.readAsText(file);
+            };
+
+            input.click();
+        };
+
+        // Save/Download Json File from Qt App
+        Module.qtCallbacks.downloadJson = (content: string) => {
+            const blob = new Blob([content], { type: "application/json" });
+            const url = URL.createObjectURL(blob);
+
+            const a = document.createElement("a");
+            a.href = url;
+            a.download = "data.json";
+            a.click();
+
+            URL.revokeObjectURL(url);
+        };
+
+
     }, []);
 
     // Register callback for receiving messages from Qt
@@ -170,6 +230,11 @@ export function useQtMapModule() {
     // Register callback specifically for receiving markers from Qt
     const onAddMarkerFromQt = useCallback((cb: (lat: number, lon: number) => void) => {
         callbacksRef.current.addMarkerFromQt = cb;
+    }, []);
+
+    // Register callback for clearing markers from Qt
+    const onClearMarkersFromQt = useCallback((cb: () => void) => {
+        callbacksRef.current.clearMarkersFromQt = cb;
     }, []);
 
     // Register callback for clearing NN Path from Qt
@@ -296,6 +361,7 @@ export function useQtMapModule() {
         sendNumberToQt,
         sendStringToQt,
         onToggleDeleteFromQt,
+        onClearMarkersFromQt,
         addCoordinateToQt,
         removeCoordinateToQt,
         setupCallbacks,

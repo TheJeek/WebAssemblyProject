@@ -63,6 +63,7 @@ export const QtPage : React.FC = () => {
     };
 
     return (<>
+            <div style={{padding: "50px"}}>
             <div className="flex space-x-2">
                 <input
                     type="text"
@@ -78,20 +79,22 @@ export const QtPage : React.FC = () => {
                     Send
                 </Button>
             </div>
-            <div
-                ref={containerRef}
-                id="qt-container"
-                style={{
-                    width: "100vw",
-                    height: "100vh",
-                    border: "1px solid blue",
-                    display: "flex",
-                    justifyContent: "center",
-                    alignItems: "center",
-                    overflow: "hidden",
-                    backgroundColor: "#000",
-                }}
-            />
+                <div
+                    ref={containerRef}
+                    id="qt-container"
+                    style={{
+                        width: "90vw",
+                        height: "80vh",
+                        border: "1px solid blue",
+                        display: "flex",
+                        justifyContent: "center",
+                        alignItems: "center",
+                        overflow: "hidden",
+                        backgroundColor: "#000",
+                    }}
+                />
+            </div>
+
         </>
     );
 }

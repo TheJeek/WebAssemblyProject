@@ -259,6 +259,11 @@ const MapComponent: React.FC = () => {
         setToggleDelete(!toggleDelete);
     })
 
+    qtModuleHook.onClearMarkersFromQt( () => {
+        console.log("JS: clearMarkers");
+        setMarkers([]);
+    })
+
     qtModuleHook.onAddMarkerFromQt((lat, lon) => {
         addMarker(lat, lon);
     })
