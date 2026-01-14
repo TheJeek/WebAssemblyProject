@@ -1,5 +1,6 @@
 import axios from "axios";
 import JSZip from "jszip";
+import { toast } from "sonner";
 
 const BASE_URL = "http://localhost:8080/api/files";
 
@@ -16,7 +17,14 @@ export async function uploadFile(
     });
 
     if (!response.ok) {
-        throw new Error("Upload failed");
+        toast.error("Upload failed!", {
+            description: "Your file has not been uploaded.",
+        });
+    }
+    else {
+        toast.success("Upload successful", {
+            description: "Your file has been uploaded.",
+        });
     }
 }
 
@@ -45,19 +53,19 @@ export async function downloadFile(type: "default" | "map") {
         document.body.removeChild(link);
     } catch (err) {
         console.error(err);
-        alert("Download failed!");
+        toast.error("Download failed!");
     }
 }
 
 export async function fetchMapZip(): Promise<Blob> {
     const res = await fetch(`${BASE_URL}/download/map`);
-    if (!res.ok) throw new Error("Failed to download map wasm zip");
+    if (!res.ok) toast.error("Failed to download Traveling Salesman WebAssembly module");
     return res.blob();
 }
 
 export async function fetchDefaultZip(): Promise<Blob> {
     const res = await fetch(`${BASE_URL}/download/default`);
-    if (!res.ok) throw new Error("Failed to download default wasm zip");
+    if (!res.ok) toast.error("Failed to download Qt Webassembly module");
     return res.blob();
 }
 

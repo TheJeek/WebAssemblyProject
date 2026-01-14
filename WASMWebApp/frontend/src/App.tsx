@@ -1,6 +1,7 @@
 import {Home} from "./components/Home.tsx";
 import {Link, Routes, Route} from "react-router-dom";
 import {Button} from "./components/ui/button.tsx";
+import { Toaster } from "@/components/ui/sonner";
 import {QtTest} from "./components/WASMInterface/QtTest.tsx";
 import {FileUpload} from "./components/FileUpload/FileUpload.tsx";
 import MapComponent from "@/components/Map/MapComponent.tsx";
@@ -36,6 +37,7 @@ function App() {
                 <Route path={"/upload-download"} element={<FileUpload />} />
                 <Route path="/map" element={<MapComponent />} />
             </Routes>
+            <Toaster richColors />
         </>
     );
 }
