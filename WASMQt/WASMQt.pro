@@ -20,15 +20,13 @@ SOURCES += \
     communicationbridge.cpp \
     globals.cpp \
     main.cpp \
-    manorboy.cpp \
-    manorboyoptimized.cpp
+    manorboy.cpp
 
 HEADERS += \
     algorithm.h \
     communicationbridge.h \
     globals.h \
-    manorboy.h \
-    manorboyoptimized.h
+    manorboy.h
 
 FORMS +=
 

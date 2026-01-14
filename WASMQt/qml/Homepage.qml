@@ -20,11 +20,12 @@ Page {
                 id: navList
                 anchors.fill: parent
                 model: [
-                    { name: "ManOrBoy", source: "ManOrBoy.qml", color: "#2c2c2c" },
-                    { name: "Fibonacci Iterative",    source: "FibonacciIter.qml" },
-                    { name: "Fibonacci Recursive",    source: "FibonacciRec.qml" },
+                    { name: "Communication", source: "CommunicationBridge.qml" },
                     { name: "Statistics", source: "Statistics.qml" },
-                    { name: "Communication", source: "CommunicationBridge.qml" }
+                    { name: "ManOrBoy", source: "ManOrBoy.qml" },
+                    { name: "Fibonacci Iterative", source: "FibonacciIter.qml" },
+                    { name: "Fibonacci Recursive", source: "FibonacciRec.qml" },
+                    { name: "Sieve of Eratosthenes", source: "SieveOfEratosthenes.qml" }
                 ]
 
                 delegate: ItemDelegate {
@@ -45,13 +46,6 @@ Page {
             Layout.fillWidth: true
             Layout.fillHeight: true
             source: "ManOrBoy.qml"   // default page
-
-            onLoaded: {
-                // Make sure the loaded item sees the bridge
-                if (contentLoader.item) {
-                    contentLoader.item.communicationBridge = communicationBridge
-                }
-            }
         }
     }
 }

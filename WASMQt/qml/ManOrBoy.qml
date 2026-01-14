@@ -36,7 +36,7 @@ Page  {
                 text: "Run Single Test"
                 onClicked: {
                     resultsModel.clear()
-                    mobopt.singleTest(Number(kInput.text))
+                    algorithm.singleTest(Number(kInput.text))
                 }
             }
 
@@ -44,7 +44,7 @@ Page  {
                 text: "Run Incremental Test"
                 onClicked: {
                     resultsModel.clear()
-                    mobopt.incrementalTest(Number(kInput.text))
+                    algorithm.incrementalTest(Number(kInput.text))
                 }
             }
         }
@@ -79,6 +79,7 @@ Page  {
                             Text { text: "k: " + model.k; font.bold: true }
                             Text { text: "Result: " + model.result }
                             Text { text: "Max Recursion Depth: " + model.depth }
+                            Text { text: "Call Count: " + model.callCount }
                             Text { text: "Stack Before Test: " + model.stackBefore + " bytes" }
                             Text { text: "Stack After Test: " + model.stackAfter + " bytes" }
                             Text { text: "Stack Average Usage with Depth " + model.depth + ": " + model.stackAverage + " bytes" }
@@ -91,10 +92,9 @@ Page  {
         }
     }
 
-    // CONNECTIONS
     Connections {
-        target: mob
-        function onTestResult(k, result, maxDepth, stackBefore, stackAfter, stackAverage, executionTime, deployment) {
+        target: algorithm
+        function onTestResult(k, result, maxDepth, stackBefore, stackAfter, stackAverage, executionTime, deployment, callCount) {
             resultsModel.append({
                 k: k,
                 result: result,
@@ -103,22 +103,7 @@ Page  {
                 stackAfter: stackAfter,
                 stackAverage: stackAverage,
                 executionTime: executionTime ? executionTime : "0",
-                deployment: deployment ? deployment : "N/A"
-            })
-        }
-    }
-
-    Connections {
-        target: mobopt
-        function onTestResult(k, result, maxDepth, stackBefore, stackAfter, stackAverage, executionTime, deployment) {
-            resultsModel.append({
-                k: k,
-                result: result,
-                depth: maxDepth,
-                stackBefore: stackBefore,
-                stackAfter: stackAfter,
-                stackAverage: stackAverage,
-                executionTime: executionTime ? executionTime : "0",
+                callCount: callCount,
                 deployment: deployment ? deployment : "N/A"
             })
         }
