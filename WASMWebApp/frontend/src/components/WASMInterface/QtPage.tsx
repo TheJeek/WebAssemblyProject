@@ -7,12 +7,13 @@ export const QtPage : React.FC = () => {
     const containerRef = useRef<HTMLDivElement>(null);
     const qtModuleHook = useQtModule();
     const [input, setInput] = useState("");
+    let qtModule: any = null;
 
     useEffect(() => {
         let urls: Record<string, string> = {};
         let script: HTMLScriptElement | null = null;
 
-        async function initMap() {
+        async function initQt() {
             const zipBlob = await fetchDefaultZip();
             const files = await extractZip(zipBlob);
             urls = createFileURLs(files);
@@ -33,12 +34,12 @@ export const QtPage : React.FC = () => {
                 const Module: any = {};
                 // Provide the container for Qt windows
                 Module.qtContainerElements = [containerRef.current];
-
                 // Locate files in the virtual zip (instead of public folder)
                 Module.locateFile = (path: string) => urls[path] || path;
 
                 // Callback when WASM runtime is ready
                 Module.onRuntimeInitialized = () => {
+                    qtModule = Module;
                     console.log("Qt WASM initialized");
                     qtModuleHook.setupCallbacks(Module);
                     qtModuleHook.onMessageFromQt((msg) => {
@@ -53,14 +54,26 @@ export const QtPage : React.FC = () => {
             document.body.appendChild(script);
         }
 
-        initMap();
+        initQt();
 
         return () => {
-            if (script) document.body.removeChild(script);
-            if (containerRef.current) containerRef.current.innerHTML = "";
+            if (qtModule?.quit) {
+                qtModule.quit();
+            }
+            qtModule = null;
 
-            // Revoke all blob URLs
+            if (script) {
+                document.body.removeChild(script);
+                script = null;
+            }
+
+            if (containerRef.current) {
+                containerRef.current.innerHTML = "";
+                containerRef.current = null;
+            }
+
             Object.values(urls).forEach(URL.revokeObjectURL);
+            urls = {};
         };
     }, []);
 
@@ -104,7 +117,7 @@ export const QtPage : React.FC = () => {
                     id="qt-container"
                     style={{
                         width: "90vw",
-                        height: "80vh",
+                        height: "100vh",
                         display: "flex",
                         justifyContent: "center",
                         alignItems: "center",

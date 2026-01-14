@@ -11,6 +11,7 @@ const MapComponent: React.FC = () => {
     const containerRef = useRef<HTMLDivElement>(null);
     const qtModuleHook = useQtMapModule();
     let [toggleDelete, setToggleDelete] = useState(false);
+    let qtModule: any = null;
 
     useEffect(() => {
         let urls: Record<string, string> = {};
@@ -43,6 +44,7 @@ const MapComponent: React.FC = () => {
 
                 // Callback when WASM runtime is ready
                 Module.onRuntimeInitialized = () => {
+                    qtModule = Module;
                     console.log("Qt WASM initialized");
                     qtModuleHook.setupCallbacks(Module);
                     qtModuleHook.onMessageFromQt((msg) => {
@@ -60,11 +62,23 @@ const MapComponent: React.FC = () => {
         initMap();
 
         return () => {
-            if (script) document.body.removeChild(script);
-            if (containerRef.current) containerRef.current.innerHTML = "";
+            if (qtModule?.quit) {
+                qtModule.quit();
+            }
+            qtModule = null;
 
-            // Revoke all blob URLs
+            if (script) {
+                document.body.removeChild(script);
+                script = null;
+            }
+
+            if (containerRef.current) {
+                containerRef.current.innerHTML = "";
+                containerRef.current = null;
+            }
+
             Object.values(urls).forEach(URL.revokeObjectURL);
+            urls = {};
         };
     }, []);
 
