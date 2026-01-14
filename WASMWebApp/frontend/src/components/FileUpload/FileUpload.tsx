@@ -1,136 +1,118 @@
 import React, { useState } from "react";
 import axios from "axios";
+import {downloadFile, uploadFile} from "@/api/fileApi.ts";
+import {Button} from "@/components/ui/button.tsx";
 
 export const FileUpload: React.FC = () => {
-    const [file, setFile] = useState<File | null>(null);
-    const [fileId, setFileId] = useState<string>("");
-    const [allFiles, setAllFiles] = useState<any[]>([]);
 
-    const API_URL = "http://localhost:8080/api/files";
-
-    // Handle file input
-    const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        if (e.target.files && e.target.files.length > 0) {
-            setFile(e.target.files[0]);
-        }
-    };
-
-    // Upload file
-    const handleUpload = async () => {
-        if (!file) return alert("Please select a file first!");
-
-        const formData = new FormData();
-        formData.append("file", file);
-        allFiles;
-
-        try {
-            const res = await axios.post(`${API_URL}/upload`, formData, {
-                headers: { "Content-Type": "multipart/form-data" },
-            });
-
-            alert("File uploaded successfully!");
-            console.log(res.data);
-        } catch (err) {
-            console.error(err);
-            alert("Upload failed!");
-        }
-    };
-
-    // Download single file by UUID
-    const handleDownloadById = async () => {
-        if (!fileId) return alert("Please enter a file ID!");
-
-        try {
-            const res = await axios.get(`${API_URL}/${fileId}`, {
-                responseType: "blob",
-            });
-
-            // Extract filename and type from headers if available
-            const contentDisposition = res.headers["content-disposition"];
-            let filename = "downloaded_file";
-
-            if (contentDisposition) {
-                const match = contentDisposition.match(/filename="?([^"]+)"?/);
-                if (match && match[1]) filename = match[1];
-            }
-
-            const fileType = res.headers["content-type"] || "application/octet-stream";
-
-            const url = URL.createObjectURL(new Blob([res.data], { type: fileType }));
-            const link = document.createElement("a");
-            link.href = url;
-            link.download = filename;
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
-        } catch (err) {
-            console.error(err);
-            alert("Download failed!");
-        }
-    };
-
-    // Download all files
-    const handleDownloadAll = async () => {
-        try {
-            const res = await axios.get(`${API_URL}`, { responseType: "json" });
-            setAllFiles(res.data);
-
-            for (const f of res.data) {
-                if (f.url != undefined) {
-                    const fileRes = await axios.get(`${f.url}`, { responseType: "blob" });
-                    const url = URL.createObjectURL(
-                        new Blob([fileRes.data], { type: f.type || "application/octet-stream" })
-                    );
-                    const link = document.createElement("a");
-                    link.href = url;
-                    link.download = f.name || "unknown_file";
-                    document.body.appendChild(link);
-                    link.click();
-                    document.body.removeChild(link);
-                }
-            }
-
-            alert("All files downloaded!");
-        } catch (err) {
-            console.error(err);
-            alert("Failed to download all files!");
-        }
-    };
+    const [defaultFile, setDefaultFile] = useState<File | null>(null);
+    const [mapFile, setMapFile] = useState<File | null>(null);
 
     return (
-        <div className="p-8 flex flex-col items-center space-y-4">
-            <h1 className="text-2xl font-semibold mb-2"> File Upload & Download</h1>
-
-            <input type="file" onChange={handleFileChange} />
-            <button
-                onClick={handleUpload}
-                className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded"
+        <div
+            style={{
+                padding: "40px 20px",
+                minHeight: "100vh",
+                display: "flex",
+                flexDirection: "column",
+                alignItems: "center",
+                boxSizing: "border-box",
+            }}
+        >
+            {/* WebAssembly Qt Project File Section */}
+            <section
+                style={{
+                    width: "100%",
+                    maxWidth: "600px",
+                    padding: "20px",
+                    marginBottom: "30px",
+                    borderRadius: "12px",
+                    boxShadow: "0 4px 8px rgba(0,0,0,0.5)",
+                    display: "flex",
+                    flexDirection: "column",
+                    gap: "15px",
+                }}
             >
-                Upload
-            </button>
+                <h2 style={{ margin: 0 }}>Qt WebAssembly Project WASM zip</h2>
 
-            <div className="flex flex-col items-center space-y-2 mt-6">
-                <input
-                    type="text"
-                    value={fileId}
-                    onChange={(e) => setFileId(e.target.value)}
-                    placeholder="Enter File ID"
-                    className="border px-2 py-1 rounded w-64 text-center"
-                />
-                <button
-                    onClick={handleDownloadById}
-                    className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded"
+                <label
+                    style={{
+                        display: "inline-block",
+                        cursor: "pointer",
+                        padding: "10px 15px",
+                        backgroundColor: "#28a745",
+                        borderRadius: "6px",
+                        textAlign: "center",
+                        fontWeight: 500,
+                        width: "fit-content",
+                    }}
                 >
-                    Download by ID
-                </button>
-            </div>
+                    Choose File
+                    <input
+                        type="file"
+                        style={{ display: "none" }}
+                        onChange={(e) => setDefaultFile(e.target.files?.[0] ?? null)}
+                    />
+                </label>
+                {defaultFile && <span>{defaultFile.name}</span>}
 
-            <button
-                onClick={handleDownloadAll}
-                className="bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded mt-4"
+                <div style={{ display: "flex", gap: "10px" }}>
+                    <Button
+                        onClick={() => defaultFile && uploadFile(defaultFile, "default")}
+                        disabled={!defaultFile}
+                    >
+                        Upload
+                    </Button>
+                    <Button onClick={() => downloadFile("default")}>Download</Button>
+                </div>
+            </section>
+
+            {/* Traveling Salesman WASM File Section */}
+            <section
+                style={{
+                    width: "100%",
+                    maxWidth: "600px",
+                    padding: "20px",
+                    borderRadius: "12px",
+                    boxShadow: "0 4px 8px rgba(0,0,0,0.5)",
+                    display: "flex",
+                    flexDirection: "column",
+                    gap: "15px",
+                }}
             >
-                Download All Files
-            </button>
+                <h2 style={{ margin: 0 }}>Traveling Salesman Project WASM zip</h2>
+
+                <label
+                    style={{
+                        display: "inline-block",
+                        cursor: "pointer",
+                        padding: "10px 15px",
+                        backgroundColor: "#28a745",
+                        borderRadius: "6px",
+                        textAlign: "center",
+                        fontWeight: 500,
+                        width: "fit-content",
+                    }}
+                >
+                    Choose File
+                    <input
+                        type="file"
+                        style={{ display: "none" }}
+                        onChange={(e) => setMapFile(e.target.files?.[0] ?? null)}
+                    />
+                </label>
+                {mapFile && <span>{mapFile.name}</span>}
+
+                <div style={{ display: "flex", gap: "10px" }}>
+                    <Button variant={"default"}
+                        onClick={() => mapFile && uploadFile(mapFile, "map")}
+                        disabled={!mapFile}
+                    >
+                        Upload
+                    </Button>
+                    <Button onClick={() => downloadFile("map")}>Download</Button>
+                </div>
+            </section>
         </div>
     );
-};
+}

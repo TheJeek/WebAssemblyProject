@@ -14,17 +14,12 @@ function App() {
                     <div className="flex items-center gap-4" style={{width: "100vw" }}>
                         <Link to="/">
                             <Button>
-                                Chart
+                                Qt WebAssembly
                             </Button>
                         </Link>
                         <Link to="/map">
                             <Button>
-                                Map
-                            </Button>
-                        </Link>
-                        <Link to="/html-test">
-                            <Button>
-                                IFrame
+                                Traveling Salesman
                             </Button>
                         </Link>
                         <Link to="/upload-download">

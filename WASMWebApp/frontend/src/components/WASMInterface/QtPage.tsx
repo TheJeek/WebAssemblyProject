@@ -1,19 +1,26 @@
 import React, {useEffect, useRef, useState} from "react";
 import {Button} from "../ui/button.tsx";
 import {useQtModule} from "../useQtModule.ts";
+import {createFileURLs, extractZip, fetchDefaultZip} from "@/api/fileApi.ts";
 
 export const QtPage : React.FC = () => {
     const containerRef = useRef<HTMLDivElement>(null);
-    const hasInitialized = useRef(false);
     const qtModuleHook = useQtModule();
     const [input, setInput] = useState("");
 
     useEffect(() => {
-        if (hasInitialized.current) return;
-        hasInitialized.current = true;
-        const script = document.createElement("script");
-        script.src = "/qt/WASMQt.js";
-        script.async = true;
+        let urls: Record<string, string> = {};
+        let script: HTMLScriptElement | null = null;
+
+        async function initMap() {
+            const zipBlob = await fetchDefaultZip();
+            const files = await extractZip(zipBlob);
+            urls = createFileURLs(files);
+
+            // Load JS from extracted zip
+            script = document.createElement("script");
+            script.src = urls["WASMQt.js"];
+            script.async = true;
 
         script.onload = () => {
             const qtEntry = (window as any).WASMQt_entry;
@@ -22,37 +29,38 @@ export const QtPage : React.FC = () => {
                 return;
             }
 
-            // Create Module object
-            const Module: any = {};
-            // Provide the container for Qt windows
-            Module.qtContainerElements = [containerRef.current];
+                // Create Module object
+                const Module: any = {};
+                // Provide the container for Qt windows
+                Module.qtContainerElements = [containerRef.current];
 
-            // So Qt can find WASM/data files (in public folder)
-            Module.locateFile = (path: string) => `/qt/${path}`;
+                // Locate files in the virtual zip (instead of public folder)
+                Module.locateFile = (path: string) => urls[path] || path;
 
-            // Callback when WASM runtime is ready
-            Module.onRuntimeInitialized = () => {
-                console.log("Qt WASM initialized");
-                qtModuleHook.setupCallbacks(Module);
-                qtModuleHook.onMessageFromQt((msg) => {
-                    console.log("Message from Qt:", msg);
-                })
+                // Callback when WASM runtime is ready
+                Module.onRuntimeInitialized = () => {
+                    console.log("Qt WASM initialized");
+                    qtModuleHook.setupCallbacks(Module);
+                    qtModuleHook.onMessageFromQt((msg) => {
+                        console.log("Message from Qt:", msg);
+                    })
+                };
+
+                // Initialize Qt
+                qtEntry(Module);
             };
 
-            // Initialize Qt
-            qtEntry(Module);
-        };
+            document.body.appendChild(script);
+        }
 
-        document.body.appendChild(script);
+        initMap();
 
         return () => {
-            //Cleanup scripts on unmount
-            document.body.removeChild(script);
+            if (script) document.body.removeChild(script);
+            if (containerRef.current) containerRef.current.innerHTML = "";
 
-            //Cleanup container to remove old Qt canvas
-            if (containerRef.current) {
-                containerRef.current.innerHTML = "";
-            }
+            // Revoke all blob URLs
+            Object.values(urls).forEach(URL.revokeObjectURL);
         };
     }, []);
 
@@ -63,29 +71,40 @@ export const QtPage : React.FC = () => {
     };
 
     return (<>
-            <div style={{padding: "50px"}}>
-            <div className="flex space-x-2">
-                <input
-                    type="text"
-                    value={input}
-                    onChange={(e) => setInput(e.target.value)}
-                    className="border px-2 py-1 rounded"
-                    placeholder="Send Number to Qt"
-                />
-                <Button
-                    onClick={sendMessageToQt}
-                    className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-1 rounded"
+            <div style={{padding: "20px"}}>
+                <section
+                    style={{
+                        maxWidth: "400px",
+                        padding: "20px",
+                        marginBottom: "10px",
+                        borderRadius: "12px",
+                        boxShadow: "0 4px 8px rgba(0,0,0,0.5)",
+                        display: "flex",
+                        flexDirection: "column",
+                    }}
                 >
-                    Send
-                </Button>
-            </div>
+                    <div className="flex space-x-2">
+                        <input
+                            type="text"
+                            value={input}
+                            onChange={(e) => setInput(e.target.value)}
+                            className="border px-2 py-1 rounded"
+                            placeholder="Send Message to Qt"
+                        />
+                        <Button
+                            onClick={sendMessageToQt}
+                            className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-1 rounded"
+                        >
+                            Send
+                        </Button>
+                    </div>
+                </section>
                 <div
                     ref={containerRef}
                     id="qt-container"
                     style={{
                         width: "90vw",
                         height: "80vh",
-                        border: "1px solid blue",
                         display: "flex",
                         justifyContent: "center",
                         alignItems: "center",
@@ -94,7 +113,6 @@ export const QtPage : React.FC = () => {
                     }}
                 />
             </div>
-
         </>
     );
 }

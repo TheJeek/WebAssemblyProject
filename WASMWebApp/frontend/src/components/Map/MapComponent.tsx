@@ -3,62 +3,72 @@ import {MapContainer, TileLayer, Marker, Polyline, useMapEvents, Popup} from "re
 import L, {type LatLngExpression } from "leaflet";
 import {Button} from "@/components/ui/button.tsx";
 import {useQtMapModule} from "@/components/Map/useQtMapModule.ts";
+import {createFileURLs, extractZip, fetchMapZip} from "@/api/fileApi.ts";
 
 type Path = LatLngExpression[];
 
 const MapComponent: React.FC = () => {
     const containerRef = useRef<HTMLDivElement>(null);
-    const hasInitialized = useRef(false);
     const qtModuleHook = useQtMapModule();
     let [toggleDelete, setToggleDelete] = useState(false);
 
     useEffect(() => {
-        if (hasInitialized.current) return;
-        hasInitialized.current = true;
-        const script = document.createElement("script");
-        script.src = "/map/TSMProject.js";
-        script.async = true;
+        let urls: Record<string, string> = {};
+        let script: HTMLScriptElement | null = null;
 
-        script.onload = () => {
-            const qtEntry = (window as any).TSMProject_entry;
-            if (!qtEntry) {
-                console.error("TSMProject_entry not found!");
-                return;
-            }
+        async function initMap() {
+            const zipBlob = await fetchMapZip();
+            const files = await extractZip(zipBlob);
+            urls = createFileURLs(files);
 
-            // Create Module object
-            const Module: any = {};
-            // Provide the container for Qt windows
-            Module.qtContainerElements = [containerRef.current];
+            // Load JS from extracted zip
+            script = document.createElement("script");
+            script.src = urls["TSMProject.js"];
+            script.async = true;
 
-            // So Qt can find WASM/data files (currently in public folder)
-            Module.locateFile = (path: string) => `/map/${path}`;
+            script.onload = () => {
+                const qtEntry = (window as any).TSMProject_entry;
+                if (!qtEntry) {
+                    console.error("TSMProject_entry not found!");
+                    return;
+                }
 
-            // Callback when WASM runtime is ready
-            Module.onRuntimeInitialized = () => {
-                console.log("Qt WASM initialized");
-                qtModuleHook.setupCallbacks(Module);
-                qtModuleHook.onMessageFromQt((msg) => {
-                    console.log("Message from Qt:", msg);
-                })
+                // Create Module object
+                const Module: any = {};
+                // Provide the container for Qt windows
+                Module.qtContainerElements = [containerRef.current];
+
+                // Locate files in the virtual zip (instead of public folder)
+                Module.locateFile = (path: string) => urls[path] || path;
+
+                // Callback when WASM runtime is ready
+                Module.onRuntimeInitialized = () => {
+                    console.log("Qt WASM initialized");
+                    qtModuleHook.setupCallbacks(Module);
+                    qtModuleHook.onMessageFromQt((msg) => {
+                        console.log("Message from Qt:", msg);
+                    })
+                };
+
+                // Initialize Qt
+                qtEntry(Module);
             };
 
-            // Initialize Qt
-            qtEntry(Module);
-        };
+            document.body.appendChild(script);
+        }
 
-        document.body.appendChild(script);
+        initMap();
 
         return () => {
-            //Cleanup scripts on unmount
-            document.body.removeChild(script);
+            if (script) document.body.removeChild(script);
+            if (containerRef.current) containerRef.current.innerHTML = "";
 
-            //Cleanup container to remove old Qt canvas
-            if (containerRef.current) {
-                containerRef.current.innerHTML = "";
-            }
+            // Revoke all blob URLs
+            Object.values(urls).forEach(URL.revokeObjectURL);
         };
     }, []);
+
+
 
 
 
