@@ -8,7 +8,7 @@ Page  {
     width: 1000
     height: 700
     background: Rectangle {
-            color: "#2b2b2b"
+            color: "#616060"
         }
 
     ListModel {

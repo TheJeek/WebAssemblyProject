@@ -1,34 +1,51 @@
-// qml/DynamicLineChart.qml
-import QtQuick
-import QtCharts
+import QtQuick 2.15
+import QtCharts 2.15
 
 ChartView {
     id: chart
-    title: "Fibonacci Values (Line Chart)"
     anchors.fill: parent
     antialiasing: true
+    animationOptions: ChartView.NoAnimation
 
-    property var data: []
+    property string chartTitle: "Dynamic Chart"
+    title: chartTitle
 
-    ValueAxis { id: axisX; titleText: "n"; min: 0; labelFormat: "%d"}
-    ValueAxis { id: axisY; titleText: "Duration (ms)"; min: 0; labelFormat: "%d"}
+    property string xAxisTitle: "X Axis"
+    property string yAxisTitle: "Y Axis"
+
+    ValueAxis { id: axisX; titleText: xAxisTitle; min: 0 }
+    ValueAxis { id: axisY; titleText: yAxisTitle; min: 0 }
+
+    property var data: []     // array of {x,y}
 
     LineSeries {
         id: series
-        name: "Fib(n)"
+        name: "Index"
         axisX: axisX
         axisY: axisY
+        color: "red"
+        width: 2
     }
-
-    Component.onCompleted: rebuildChart()
-    onDataChanged: rebuildChart()
 
     function rebuildChart() {
         series.clear()
-        for (let d of data) {
-            series.append(d.index, d.duration/1000000)
+        if (data.length < 2) return
+
+        let maxX = 0
+        let maxY = 0
+
+        for (let i = 0; i < data.length; i++) {
+            const point = data[i]
+            if (!isFinite(point.x) || !isFinite(point.y)) continue
+            series.append(point.x, point.y)
+            if (point.x > maxX) maxX = point.x
+            if (point.y > maxY) maxY = point.y
         }
-        axisX.max = data.length > 0 ? data[data.length - 1].index : 0
-        axisY.max = Math.max.apply(Math, data.map(d => d.duration/1000000))
+
+        axisX.min = 0
+        axisX.max = maxX
+        axisY.min = 0
+        axisY.max = maxY * 1.05
     }
 }
+

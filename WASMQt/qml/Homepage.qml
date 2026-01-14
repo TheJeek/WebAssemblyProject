@@ -14,14 +14,16 @@ Page {
         Rectangle {
             Layout.preferredWidth: 200
             Layout.fillHeight: true
-            color: "#2c2c2c"
+            color: "#616060"
 
             ListView {
                 id: navList
                 anchors.fill: parent
                 model: [
                     { name: "ManOrBoy", source: "ManOrBoy.qml", color: "#2c2c2c" },
-                    { name: "Chart",    source: "Fibonacci.qml" },
+                    { name: "Fibonacci Iterative",    source: "FibonacciIter.qml" },
+                    { name: "Fibonacci Recursive",    source: "FibonacciRec.qml" },
+                    { name: "Statistics", source: "Statistics.qml" },
                     { name: "Communication", source: "CommunicationBridge.qml" }
                 ]
 

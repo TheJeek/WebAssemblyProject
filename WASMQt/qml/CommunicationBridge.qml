@@ -8,7 +8,7 @@ Page {
     property var communicationBridge
     title: "Communication Bridge"
     background: Rectangle {
-            color: "#2b2b2b"
+            color: "#616060"
         }
 
     // State

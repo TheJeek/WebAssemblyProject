@@ -16,16 +16,16 @@ QMAKE_CFLAGS_RELEASE += -O3
  win32:QMAKE_LFLAGS += -Wl,--stack,2097152
 
 SOURCES += \
+    algorithm.cpp \
     communicationbridge.cpp \
-    fibonacci.cpp \
     globals.cpp \
     main.cpp \
     manorboy.cpp \
     manorboyoptimized.cpp
 
 HEADERS += \
+    algorithm.h \
     communicationbridge.h \
-    fibonacci.h \
     globals.h \
     manorboy.h \
     manorboyoptimized.h

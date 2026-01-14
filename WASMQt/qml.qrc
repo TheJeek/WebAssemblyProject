@@ -1,11 +1,13 @@
 <RCC>
     <qresource prefix="/">
-        <file>qml/Fibonacci.qml</file>
+        <file>qml/FibonacciIter.qml</file>
         <file>qml/DynamicBarChart.qml</file>
         <file>qml/DynamicLineChart.qml</file>
         <file>qml/UnifiedChart.qml</file>
         <file>qml/ManOrBoy.qml</file>
         <file>qml/Homepage.qml</file>
         <file>qml/CommunicationBridge.qml</file>
+        <file>qml/FibonacciRec.qml</file>
+        <file>qml/Statistics.qml</file>
     </qresource>
 </RCC>

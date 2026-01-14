@@ -5,7 +5,7 @@
 #include <QQmlEngine>
 #include <QQuickView>
 #include <QQmlContext>
-#include "fibonacci.h"
+#include "algorithm.h"
 #include "communicationbridge.h"
 #include "manorboy.h"
 #include "manorboyoptimized.h"
@@ -16,7 +16,7 @@ int main(int argc, char *argv[])
 {
     QApplication app(argc, argv);
 
-    Fibonacci fib;
+    Algorithm algo;
     ManOrBoy mob;
     ManOrBoyOptimized mobo;
 
@@ -24,7 +24,7 @@ int main(int argc, char *argv[])
     viewer.setMinimumSize({1200, 800});
     QObject::connect(viewer.engine(), &QQmlEngine::quit, &viewer, &QWindow::close);
 
-    viewer.engine()->rootContext()->setContextProperty("fibonacci", &fib);
+    viewer.engine()->rootContext()->setContextProperty("algorithm", &algo);
     viewer.engine()->rootContext()->setContextProperty("mob", &mob);
     viewer.engine()->rootContext()->setContextProperty("mobopt", &mobo);
     viewer.engine()->rootContext()->setContextProperty("communicationBridge", &cBridge);
