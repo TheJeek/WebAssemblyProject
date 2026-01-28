@@ -61,7 +61,7 @@ public class FileController {
     }
 
     @GetMapping("/map/{filename}")
-    public ResponseEntity<byte[]> getMapFile(@PathVariable String filename) {
+    public ResponseEntity<Object> getMapFile(@PathVariable String filename) {
         try {
             StoredFile zipFile = fileService.get(FileType.MAP);
 

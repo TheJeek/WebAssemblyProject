@@ -22,11 +22,11 @@ const TravelingSalesmanComponent: React.FC = () => {
             const BASE_URL = `${import.meta.env.VITE_API_URL}/api/files/map`;
 
             try {
-                // 1️⃣ Fetch the zip and extract all files
+                // Fetch the zip and extract all files
                 const zipBlob = await fetchMapZip();
                 const files = await extractZip(zipBlob);
 
-                // 2️⃣ Keep only JS and HTML in blob URLs
+                // Keep only JS and HTML in blob URLs
                 const blobsForJS = ["TSMProject.js", "qtloader.js", "TSMProject.html"];
                 const jsFiles: Record<string, Blob> = {};
                 for (const name of blobsForJS) {
@@ -35,7 +35,7 @@ const TravelingSalesmanComponent: React.FC = () => {
 
                 urls = createFileURLs(jsFiles); // blob URLs for JS/HTML
 
-                // 3️⃣ Inject TSMProject.js from blob
+                // Inject TSMProject.js from blob
                 scriptEl = document.createElement("script");
                 scriptEl.src = urls["TSMProject.js"];
                 scriptEl.async = true;
@@ -77,7 +77,7 @@ const TravelingSalesmanComponent: React.FC = () => {
                         });
                     };
 
-                    // 5️⃣ Initialize Qt
+                    // Initialize Qt
                     qtEntry(Module);
                 };
 
