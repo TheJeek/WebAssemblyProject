@@ -6,6 +6,7 @@
 #include <utility>
 #include <cstdint>
 #include <QDebug>
+#include <random>
 #ifdef __EMSCRIPTEN__
 #include <emscripten/stack.h>
 #endif
@@ -405,3 +406,215 @@ void Algorithm::runSieve(int n) {
         b[i] = a[i] * 2;
     }
 }
+
+// Cheney CG
+
+//Each objet lives in one of the two semispaces (fwd used during GC)
+struct Object {
+    Object* fwd;   // forwarding pointer (nullptr = not forwarded)
+    Object* ref;   // single reference to keep it simple
+};
+
+// All objects have the same size.
+constexpr size_t OBJ_SIZE = sizeof(Object);
+
+// Semispace (heap)
+#ifdef __EMSCRIPTEN__
+size_t HEAP_BYTES = 512ULL * 1024 * 1024; // 512 MB
+#else
+size_t HEAP_BYTES = 2ULL * 1024 * 1024 * 1024; // 8 GB for native
+#endif
+
+unsigned char* from_space = new unsigned char[HEAP_BYTES];
+unsigned char* to_space   = new unsigned char[HEAP_BYTES];
+unsigned char* hp = from_space;
+
+// Check if pointer points into from_space
+// since only objects in from_spae need to be copied
+bool in_from_space(Object* p) {
+    return (unsigned char*)p >= from_space &&
+           (unsigned char*)p <  from_space + HEAP_BYTES;
+}
+
+// Copy an object from from_space into to_space (copies object bytes, installs forwarding pointer in old object)
+Object* copy_object(Object* src, unsigned char* dest) {
+    Object* dst = (Object*)dest;
+    *dst = *src;        // copy object
+    src->fwd = dst;     // set forwarding
+    return dst;
+}
+
+// Cheney garbage collection
+// Implementing the pseudo code
+void cheney_gc(Object** roots, size_t root_count) {
+    unsigned char* scan  = to_space;  // scan = to_space_start  (walks over copied object and scans their reference)
+    unsigned char* alloc = to_space;  // alloc = to_space_start (points to where the next copied object will be placed)
+
+    // Copy roots
+    // Each root is a live object if root points into from_space and has not been forwarded -> copy into to_space
+    for (size_t i = 0; i < root_count; ++i) {
+        Object* root = roots[i];
+
+        if (root && in_from_space(root) && !root->fwd) {
+            roots[i] = copy_object(root, alloc);
+            alloc += OBJ_SIZE;
+        }
+    }
+
+    // Traversal loop
+    // scan moves from start of to_space up to alloc
+    // every object has been copied but not yet scanned
+    while (scan < alloc) {
+        Object* obj = (Object*)scan;
+
+        Object* ref = obj->ref;
+        if (ref && in_from_space(ref)) {
+            // ref points into from_space -> may need copying
+            if (!ref->fwd) {
+                // object not yet copied -> copy and update reference
+                obj->ref = copy_object(ref, alloc);
+                alloc += OBJ_SIZE;
+            } else {
+                // object already copied -> update reference to forwarded location
+                obj->ref = ref->fwd;
+            }
+        }
+
+        // move scan to next copied object
+        scan += OBJ_SIZE;
+    }
+
+    // Termination: swap spaces
+    // to_space contains all live object
+    // byte wise swap of the spaces
+    for (size_t i = 0; i < root_count; ++i)
+        roots[i]->fwd = nullptr; // clear forwarding (cleanup)
+
+    // swap from_space and to_space
+    for (size_t i = 0; i < HEAP_BYTES; ++i) {
+        unsigned char tmp = from_space[i];
+        from_space[i] = to_space[i];
+        to_space[i] = tmp;
+    }
+}
+
+// Cheney CG Testing
+Object* allocate_object() {
+    if (hp + sizeof(Object) > from_space + HEAP_BYTES) {
+        qDebug() << "Heap overflow!";
+        return nullptr;
+    }
+    Object* obj = reinterpret_cast<Object*>(hp);
+    hp += sizeof(Object);
+    obj->fwd = nullptr;
+    obj->ref = nullptr;
+    return obj;
+}
+
+struct HeapConfig {
+    size_t num_objects;      // total objects to create
+    size_t num_roots;        // number of roots
+    size_t num_iterations;   // how many times to run GC for timing
+};
+
+class HeapBuilder {
+public:
+    HeapBuilder(const HeapConfig& cfg) : config(cfg) {
+        // Reserve storage in vectors to avoid repeated reallocations
+        // objects: holds all allocated Object pointers
+        // roots: holds pointers to the starting objects for each root chain
+        objects.reserve(config.num_objects);
+        roots.reserve(config.num_roots);
+    }
+
+    // Allocate objects dynamically and build reference chains
+    void build_heap_dynamic() {
+        for (size_t i = 0; i < config.num_objects; ++i) {
+            Object* obj = allocate_object();  // dynamic allocation into heap
+            objects.push_back(obj); // keep track for later traversal / GC
+        }
+
+        // Each chain simulates live objects reachable from a root
+        size_t chain_len = config.num_objects / config.num_roots;
+
+        for (size_t r = 0; r < config.num_roots; ++r) {
+            size_t start_idx = r * chain_len;   // start of chain
+            size_t end_idx = (r == config.num_roots - 1) ? config.num_objects : start_idx + chain_len;
+
+             // Link objects sequentially in this chain
+            for (size_t i = start_idx; i < end_idx - 1; ++i) {
+                objects[i]->ref = objects[i + 1];
+            }
+            objects[end_idx - 1]->ref = nullptr;  // last object has no next
+            roots[r] = objects[start_idx];
+        }
+    }
+
+
+    // Access roots for GC
+    vector<Object*>& get_roots() { return roots; }
+
+    // Access all objects
+    vector<Object*>& get_objects() { return objects; }
+
+private:
+    HeapConfig config;
+    vector<Object*> objects;
+    vector<Object*> roots;
+};
+
+
+// heap is allocated dynamically
+// each root is assigned a chain of objects by linking through ref pointers (to simulate live objects)
+// objects in a chain are linked sequentially (last is nullptr) (simple linked list structure)
+void Algorithm::benchmarkCheneyCG(size_t objNum, size_t rootNum, size_t iterNum) {
+    using Clock = std::chrono::high_resolution_clock;
+
+    HeapConfig cfg;
+    cfg.num_objects = 33554432; // total objects
+    //cfg.num_objects = HEAP_BYTES / sizeof(Object) / 2;
+    cfg.num_roots = 256;           // multiple roots
+    cfg.num_iterations = 10;       // number of benchmark iterations
+
+    qDebug() << "Number of objects:" << cfg.num_objects;
+    qDebug() << "Number of roots:" << cfg.num_roots;
+    qDebug() << "Size of one Object (bytes):" << sizeof(Object);
+
+    size_t total_heap_bytes = cfg.num_objects * sizeof(Object);
+    double total_heap_mb = double(total_heap_bytes) / (1024.0 * 1024.0);
+    qDebug() << "Estimated total heap size:" << total_heap_bytes / (1024 * 1024) << "MB";
+
+    HeapBuilder builder(cfg);
+    builder.build_heap_dynamic();
+
+    auto& roots = builder.get_roots();
+
+    for (size_t iter = 0; iter < cfg.num_iterations; ++iter) {
+        auto start = Clock::now();
+
+        cheney_gc(roots.data(), roots.size());
+
+        auto end = Clock::now();
+
+        double elapsed_ms = std::chrono::duration<double, std::milli>(end - start).count();
+        double elapsed_ns = elapsed_ms * 1e6;  // convert ms -> ns
+
+        // Average time per object
+        double per_object_ns = elapsed_ns / cfg.num_objects;
+
+        qDebug() << "Iteration" << iter + 1 << ":"
+                 << QString::number(elapsed_ms, 'f', 3) << "ms"
+                 << "(" << QString::number(per_object_ns, 'f', 2) << "ns/object)";
+    }
+
+    delete[] from_space;
+    delete[] to_space;
+}
+
+
+
+
+
+
+
+

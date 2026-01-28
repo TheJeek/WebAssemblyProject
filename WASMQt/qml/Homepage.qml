@@ -25,7 +25,7 @@ Page {
                     { name: "ManOrBoy", source: "ManOrBoy.qml" },
                     { name: "Fibonacci Iterative", source: "FibonacciIter.qml" },
                     { name: "Fibonacci Recursive", source: "FibonacciRec.qml" },
-                    { name: "Sieve of Eratosthenes", source: "SieveOfEratosthenes.qml" }
+                    { name: "Cheney Garbage Collection", source: "CheneyGC.qml" }
                 ]
 
                 delegate: ItemDelegate {
@@ -45,7 +45,7 @@ Page {
             id: contentLoader
             Layout.fillWidth: true
             Layout.fillHeight: true
-            source: "ManOrBoy.qml"   // default page
+            source: "CommunicationBridge.qml"   // default page
         }
     }
 }

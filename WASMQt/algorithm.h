@@ -17,6 +17,7 @@ public:
     Q_INVOKABLE int singleTest(int k);
     Q_INVOKABLE void incrementalTest(int n);
     Q_INVOKABLE void runSieve(int n);
+    Q_INVOKABLE void benchmarkCheneyCG(size_t objNum, size_t rootNum, size_t iterNum);
 
 private:
     qint64 fibRec(int n, int depth, int& maxDepth);

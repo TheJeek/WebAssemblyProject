@@ -9,6 +9,6 @@
         <file>qml/CommunicationBridge.qml</file>
         <file>qml/FibonacciRec.qml</file>
         <file>qml/Statistics.qml</file>
-        <file>qml/SieveOfEratosthenes.qml</file>
+        <file>qml/CheneyGC.qml</file>
     </qresource>
 </RCC>

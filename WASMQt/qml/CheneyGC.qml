@@ -25,18 +25,11 @@ Page  {
             spacing: 10
             width: parent.width
 
-            TextField {
-                id: kInput
-                width: 100
-                text: "10"
-                placeholderText: "Enter n"
-            }
-
             Button {
-                text: "Run Sieve Test"
+                text: "Run Cheney Garbage Collection Simulation"
                 onClicked: {
                     resultsModel.clear()
-                    algorithm.runSieve(Number(kInput.text))
+                    algorithm.benchmarkCheneyCG(5000000, 1, 10)
                 }
             }
         }

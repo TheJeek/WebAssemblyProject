@@ -9,8 +9,8 @@ CONFIG += c++20 wasm
 # depend on your compiler). Please consult the documentation of the
 # deprecated API in order to know how to port your code away from it.
 
-QMAKE_CXXFLAGS_RELEASE += -O3
-QMAKE_CFLAGS_RELEASE += -O3
+QMAKE_CXXFLAGS_RELEASE += -O3 -fno-lto
+QMAKE_CFLAGS_RELEASE += -O3 -fno-lto
 
 # win32:QMAKE_LFLAGS += -Wl,--stack,8388608
  win32:QMAKE_LFLAGS += -Wl,--stack,2097152
