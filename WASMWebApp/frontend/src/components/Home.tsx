@@ -1,5 +1,5 @@
 import React, {useEffect, useRef} from "react";
-import {QtPage} from "./WASMInterface/QtPage.tsx";
+import {WebAssemblyBenchmarkComponent} from "@/components/Benchmark/WebAssemblyBenchmarkComponent.tsx";
 
 export const Home : React.FC = () => {
 
@@ -38,7 +38,7 @@ export const Home : React.FC = () => {
 
     return (<>
         <div className="App">
-            <QtPage />
+            <WebAssemblyBenchmarkComponent />
         </div>
     </>);
 }

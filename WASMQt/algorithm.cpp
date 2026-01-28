@@ -397,6 +397,8 @@ void Algorithm::runSieve(int n) {
     }
     qDebug() << count;
     */
+    // Memory test (large arrays, shuffle+copy)
+    // forces reads and writes so -O3 won't work
     int64_t N = 1'000'000'000;
     std::vector<int> a(N, 1), b(N, 2);
     for (size_t i = 0; i < N; ++i) {

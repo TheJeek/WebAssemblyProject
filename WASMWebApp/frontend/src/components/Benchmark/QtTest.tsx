@@ -1,9 +1,9 @@
 import React, {useEffect, useRef, useState} from "react";
-import {QtBridge} from "./QtBridge.ts";
+import {UseWebAssemblyBenchmarkModule} from "./useWebAssemblyBenchmarkModule.ts";
 
 export const QtTest : React.FC = () => {
     const iframeRef = useRef<HTMLIFrameElement>(null);
-    const bridge = QtBridge();
+    const bridge = UseWebAssemblyBenchmarkModule();
     const [input, setInput] = useState("");
 
     useEffect(() => {

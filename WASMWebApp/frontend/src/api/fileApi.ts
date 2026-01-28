@@ -2,7 +2,7 @@ import axios from "axios";
 import JSZip from "jszip";
 import { toast } from "sonner";
 
-const BASE_URL = "http://localhost:8080/api/files";
+const BASE_URL = `${import.meta.env.VITE_API_URL}/api/files`;
 
 export async function uploadFile(
     file: File,

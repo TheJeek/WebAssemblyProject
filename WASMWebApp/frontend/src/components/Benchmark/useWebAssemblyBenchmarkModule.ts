@@ -21,7 +21,7 @@ declare global {
 
 // ---- TypeScript Interface ----
 
-export const QtBridge = () => ({
+export const UseWebAssemblyBenchmarkModule = () => ({
     sendToQt(message: string) {
         const iframe = document.getElementById("qt-iframe") as HTMLIFrameElement;
         if (!iframe?.contentWindow) return;

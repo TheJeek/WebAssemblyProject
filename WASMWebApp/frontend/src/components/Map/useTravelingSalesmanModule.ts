@@ -1,7 +1,7 @@
 import { useRef, useCallback } from "react";
 
 // Hook only handles sending messages to Qt and setting up callbacks
-export function useQtMapModule() {
+export function useTravelingSalesmanModule() {
     const qtModuleRef = useRef<any>(null);
     const callbacksRef = useRef<{
         sendToReact?: (msg: string) => void;

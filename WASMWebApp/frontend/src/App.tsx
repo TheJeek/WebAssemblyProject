@@ -2,9 +2,9 @@ import {Home} from "./components/Home.tsx";
 import {Link, Routes, Route} from "react-router-dom";
 import {Button} from "./components/ui/button.tsx";
 import { Toaster } from "@/components/ui/sonner";
-import {QtTest} from "./components/WASMInterface/QtTest.tsx";
+import {QtTest} from "@/components/Benchmark/QtTest.tsx";
 import {FileUpload} from "./components/FileUpload/FileUpload.tsx";
-import MapComponent from "@/components/Map/MapComponent.tsx";
+import TravelingSalesmanComponent from "@/components/Map/TravelingSalesmanComponent.tsx";
 
 
 function App() {
@@ -35,7 +35,7 @@ function App() {
                 <Route path="/" element={<Home />} />
                 <Route path="/html-test" element={<QtTest />} />
                 <Route path={"/upload-download"} element={<FileUpload />} />
-                <Route path="/map" element={<MapComponent />} />
+                <Route path="/map" element={<TravelingSalesmanComponent />} />
             </Routes>
             <Toaster richColors />
         </>

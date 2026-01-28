@@ -3,7 +3,7 @@ import {Button} from "../ui/button.tsx";
 import {useQtModule} from "../useQtModule.ts";
 import {createFileURLs, extractZip, fetchDefaultZip} from "@/api/fileApi.ts";
 
-export const QtPage : React.FC = () => {
+export const WebAssemblyBenchmarkComponent : React.FC = () => {
     const containerRef = useRef<HTMLDivElement>(null);
     const qtModuleHook = useQtModule();
     const [input, setInput] = useState("");

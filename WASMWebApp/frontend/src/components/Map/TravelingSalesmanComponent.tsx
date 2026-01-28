@@ -2,14 +2,14 @@ import React, {useState, useRef, useEffect} from "react";
 import {MapContainer, TileLayer, Marker, Polyline, useMapEvents, Popup} from "react-leaflet";
 import L, {type LatLngExpression } from "leaflet";
 import {Button} from "@/components/ui/button.tsx";
-import {useQtMapModule} from "@/components/Map/useQtMapModule.ts";
+import {useTravelingSalesmanModule} from "@/components/Map/useTravelingSalesmanModule.ts";
 import {createFileURLs, extractZip, fetchMapZip} from "@/api/fileApi.ts";
 
 type Path = LatLngExpression[];
 
-const MapComponent: React.FC = () => {
+const TravelingSalesmanComponent: React.FC = () => {
     const containerRef = useRef<HTMLDivElement>(null);
-    const qtModuleHook = useQtMapModule();
+    const qtModuleHook = useTravelingSalesmanModule();
     let [toggleDelete, setToggleDelete] = useState(false);
     let qtModule: any = null;
 
@@ -376,7 +376,7 @@ const MapComponent: React.FC = () => {
             }}>
                 <MapContainer center={center} zoom={14} style={{ flex: 1, width: "100%" }}>
                     <TileLayer
-                        url="https://tile.openstreetmap.de/{z}/{x}/{y}.png"
+                        url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
                         attribution="&copy; OpenStreetMap contributors"
                         crossOrigin={true}
                     />
@@ -419,4 +419,4 @@ const MapComponent: React.FC = () => {
     );
 };
 
-export default MapComponent;
+export default TravelingSalesmanComponent;

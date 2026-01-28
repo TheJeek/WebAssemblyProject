@@ -1,5 +1,5 @@
 # Author: Jonas Lanz
-# Dockerfile for WebAssembly Web Application frontend
+# Dockerfile for WebAssembly Web Application frontend production mode
 
 # Build stage
 FROM node:20-alpine AS build
@@ -12,6 +12,14 @@ RUN npm install
 
 # Copy all files and build
 COPY . .
+
+# Set build-time environment variables
+ARG VITE_API_URL=http://193.197.231.233
+ARG VITE_APP_ENV=production
+
+ENV VITE_API_URL=$VITE_API_URL
+ENV VITE_APP_ENV=$VITE_APP_ENV
+
 RUN npm run build
 
 # Production stage
