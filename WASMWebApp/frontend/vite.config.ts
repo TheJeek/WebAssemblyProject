@@ -1,4 +1,4 @@
-import { defineConfig } from 'vite'
+import {defineConfig} from 'vite'
 import tailwindcss from '@tailwindcss/vite'
 import * as path from "node:path";
 import dotenv from "dotenv";
@@ -14,20 +14,20 @@ dotenv.config({path: ".env"});
 
 console.log("Loading environment from:", envFile);
 console.log("VITE_API_URL:", process.env.VITE_API_URL);
-console.log("VITE_TMDB_URL:", process.env.VITE_TMDB_URL);
 console.log("VITE_APP_ENV:", process.env.VITE_APP_ENV);
 
 // https://vite.dev/config/
 export default defineConfig({
-  server: {
-    headers: {
-      "Cross-Origin-Opener-Policy": "same-origin",
-      "Cross-Origin-Embedder-Policy": "require-corp",
+    server: {
+        headers: {
+            "Cross-Origin-Opener-Policy": "same-origin",
+            "Cross-Origin-Embedder-Policy": "require-corp",
+
+        },
+        watch: {
+            usePolling: true,
+        },
     },
-    watch: {
-      usePolling: true,
-    },
-  },
     define: {
         "import.meta.env.VITE_API_URL": JSON.stringify(
             process.env.VITE_API_URL || "http://localhost:8080",
@@ -37,14 +37,14 @@ export default defineConfig({
         ),
     },
 
-  build: {
-    sourcemap: true,
-  },
-  cacheDir: "node_modules/.vite",
-  plugins: [    tailwindcss(),  ],
-  resolve: {
-    alias: {
-      "@": path.resolve(__dirname, "./src"),
+    build: {
+        sourcemap: true,
     },
-  },
+    cacheDir: "node_modules/.vite",
+    plugins: [tailwindcss(),],
+    resolve: {
+        alias: {
+            "@": path.resolve(__dirname, "./src"),
+        },
+    },
 });

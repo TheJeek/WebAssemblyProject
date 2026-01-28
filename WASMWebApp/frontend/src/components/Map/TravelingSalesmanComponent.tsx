@@ -1,89 +1,109 @@
-import React, {useState, useRef, useEffect} from "react";
-import {MapContainer, TileLayer, Marker, Polyline, useMapEvents, Popup} from "react-leaflet";
-import L, {type LatLngExpression } from "leaflet";
-import {Button} from "@/components/ui/button.tsx";
+import React, {useEffect, useRef, useState} from "react";
+import {MapContainer, Marker, Polyline, Popup, TileLayer, useMapEvents} from "react-leaflet";
+import {type LatLngExpression} from "leaflet";
 import {useTravelingSalesmanModule} from "@/components/Map/useTravelingSalesmanModule.ts";
 import {createFileURLs, extractZip, fetchMapZip} from "@/api/fileApi.ts";
 
 type Path = LatLngExpression[];
 
+const BASE_URL = `${import.meta.env.VITE_API_URL}/api/files`;
+
 const TravelingSalesmanComponent: React.FC = () => {
     const containerRef = useRef<HTMLDivElement>(null);
     const qtModuleHook = useTravelingSalesmanModule();
     let [toggleDelete, setToggleDelete] = useState(false);
-    let qtModule: any = null;
+    const [qtModule, setQtModule] = useState<any>(null);
 
     useEffect(() => {
         let urls: Record<string, string> = {};
-        let script: HTMLScriptElement | null = null;
+        let scriptEl: HTMLScriptElement | null = null;
 
         async function initMap() {
-            const zipBlob = await fetchMapZip();
-            const files = await extractZip(zipBlob);
-            urls = createFileURLs(files);
+            const BASE_URL = `${import.meta.env.VITE_API_URL}/api/files/map`;
 
-            // Load JS from extracted zip
-            script = document.createElement("script");
-            script.src = urls["TSMProject.js"];
-            script.async = true;
+            try {
+                // 1️⃣ Fetch the zip and extract all files
+                const zipBlob = await fetchMapZip();
+                const files = await extractZip(zipBlob);
 
-            script.onload = () => {
-                const qtEntry = (window as any).TSMProject_entry;
-                if (!qtEntry) {
-                    console.error("TSMProject_entry not found!");
-                    return;
+                // 2️⃣ Keep only JS and HTML in blob URLs
+                const blobsForJS = ["TSMProject.js", "qtloader.js", "TSMProject.html"];
+                const jsFiles: Record<string, Blob> = {};
+                for (const name of blobsForJS) {
+                    if (files[name]) jsFiles[name] = files[name];
                 }
 
-                // Create Module object
-                const Module: any = {};
-                // Provide the container for Qt windows
-                Module.qtContainerElements = [containerRef.current];
+                urls = createFileURLs(jsFiles); // blob URLs for JS/HTML
 
-                // Locate files in the virtual zip (instead of public folder)
-                Module.locateFile = (path: string) => urls[path] || path;
+                // 3️⃣ Inject TSMProject.js from blob
+                scriptEl = document.createElement("script");
+                scriptEl.src = urls["TSMProject.js"];
+                scriptEl.async = true;
 
-                // Callback when WASM runtime is ready
-                Module.onRuntimeInitialized = () => {
-                    qtModule = Module;
-                    console.log("Qt WASM initialized");
-                    qtModuleHook.setupCallbacks(Module);
-                    qtModuleHook.onMessageFromQt((msg) => {
-                        console.log("Message from Qt:", msg);
-                    })
+                scriptEl.onload = () => {
+                    // Qt entry point
+                    const qtEntry = (window as any).TSMProject_entry;
+                    if (!qtEntry) {
+                        console.error("TSMProject_entry not found!");
+                        return;
+                    }
+
+                    // Create Module
+                    const Module: any = {};
+                    Module.qtContainerElements = [containerRef.current];
+
+                    // locateFile:
+                    // - WASM via HTTP (preserve COEP/COOP)
+                    // - JS/HTML from blob URLs
+                    Module.locateFile = (path: string) => {
+                        if (!path) {
+                            console.error("Qt locateFile called with undefined!");
+                            return "";
+                        }
+
+                        if (path.endsWith(".wasm")) return `${BASE_URL}/TSMProject.wasm`;
+                        if (urls[path]) return urls[path];
+
+                        console.warn(`Qt locateFile: Unknown file requested: ${path}`);
+                        return "";
+                    };
+
+                    Module.onRuntimeInitialized = () => {
+                        setQtModule(Module);
+                        console.log("Qt WASM initialized");
+                        qtModuleHook.setupCallbacks(Module);
+                        qtModuleHook.onMessageFromQt((msg) => {
+                            console.log("Message from Qt:", msg);
+                        });
+                    };
+
+                    // 5️⃣ Initialize Qt
+                    qtEntry(Module);
                 };
 
-                // Initialize Qt
-                qtEntry(Module);
-            };
+                document.body.appendChild(scriptEl);
 
-            document.body.appendChild(script);
+            } catch (err) {
+                console.error("Error initializing Qt WASM:", err);
+            }
         }
 
         initMap();
 
         return () => {
-            if (qtModule?.quit) {
-                qtModule.quit();
+            // Cleanup
+            if (qtModule?.quit) qtModule.quit();
+            if (scriptEl) {
+                document.body.removeChild(scriptEl);
+                scriptEl = null;
             }
-            qtModule = null;
-
-            if (script) {
-                document.body.removeChild(script);
-                script = null;
-            }
-
             if (containerRef.current) {
                 containerRef.current.innerHTML = "";
-                containerRef.current = null;
             }
-
             Object.values(urls).forEach(URL.revokeObjectURL);
             urls = {};
         };
     }, []);
-
-
-
 
 
     const [markers, setMarkers] = useState<LatLngExpression[]>([]);
@@ -195,8 +215,7 @@ const TravelingSalesmanComponent: React.FC = () => {
         if (mstTrailList.length > 0) {
             setMapLinesMST(mstTrailList);
             console.log("MST updated:", mapLinesMST);
-        }
-        else {
+        } else {
             setMapLinesMST([]);
         }
     }, [mstTrailList]);
@@ -249,7 +268,7 @@ const TravelingSalesmanComponent: React.FC = () => {
     const MapClickHandler = () => {
         useMapEvents({
             click(e) {
-                const { lat, lng } = e.latlng;
+                const {lat, lng} = e.latlng;
                 if (!toggleDelete) {
                     // Add marker
                     setMarkers((prev) => [...prev, [lat, lng]]);
@@ -278,12 +297,12 @@ const TravelingSalesmanComponent: React.FC = () => {
         return null;
     };
 
-    qtModuleHook.onToggleDeleteFromQt( () => {
+    qtModuleHook.onToggleDeleteFromQt(() => {
         console.log("JS: toggleDelete")
         setToggleDelete(!toggleDelete);
     })
 
-    qtModuleHook.onClearMarkersFromQt( () => {
+    qtModuleHook.onClearMarkersFromQt(() => {
         console.log("JS: clearMarkers");
         setMarkers([]);
     })
@@ -364,7 +383,7 @@ const TravelingSalesmanComponent: React.FC = () => {
 
 
     return (
-        <div style={{ display: "flex", height: "100vh", width: "100vw" }}>
+        <div style={{display: "flex", height: "100vh", width: "100vw"}}>
             {/* Left: Leaflet map */}
             <div style={{
                 height: "100%",
@@ -374,13 +393,13 @@ const TravelingSalesmanComponent: React.FC = () => {
                 boxShadow: "0 0 10px rgba(0,0,0,0.2)",
                 display: "flex",
             }}>
-                <MapContainer center={center} zoom={14} style={{ flex: 1, width: "100%" }}>
+                <MapContainer center={center} zoom={14} style={{flex: 1, width: "100%"}}>
                     <TileLayer
                         url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
                         attribution="&copy; OpenStreetMap contributors"
                         crossOrigin={true}
                     />
-                    <MapClickHandler />
+                    <MapClickHandler/>
 
                     {/* Render all markers */}
                     {markers.map((pos, i) => (
@@ -389,13 +408,13 @@ const TravelingSalesmanComponent: React.FC = () => {
                         </Marker>
                     ))}
 
-                    {nearestNeighborLine && <Polyline positions={nearestNeighborLine} color={colorNN} />}
-                    {mstLine && <Polyline positions={mstLine} color={colorMSTPath} />}
-                    {bruteForceLine && <Polyline positions={bruteForceLine} color={colorBF} />}
-                    {optimizedNNLine && <Polyline positions={optimizedNNLine} color={colorOptimizedNN} />}
-                    {optimizedMSTLine && <Polyline positions={optimizedMSTLine} color={colorOptimizedMSTPath} />}
-                    {dpLine && <Polyline positions={dpLine} color={colorDP} />}
-                    {mapLinesMST.map((line, i) => <Polyline key={`mstline-${i}`} positions={line} color={colorMST} />)}
+                    {nearestNeighborLine && <Polyline positions={nearestNeighborLine} color={colorNN}/>}
+                    {mstLine && <Polyline positions={mstLine} color={colorMSTPath}/>}
+                    {bruteForceLine && <Polyline positions={bruteForceLine} color={colorBF}/>}
+                    {optimizedNNLine && <Polyline positions={optimizedNNLine} color={colorOptimizedNN}/>}
+                    {optimizedMSTLine && <Polyline positions={optimizedMSTLine} color={colorOptimizedMSTPath}/>}
+                    {dpLine && <Polyline positions={dpLine} color={colorDP}/>}
+                    {mapLinesMST.map((line, i) => <Polyline key={`mstline-${i}`} positions={line} color={colorMST}/>)}
                 </MapContainer>
             </div>
 

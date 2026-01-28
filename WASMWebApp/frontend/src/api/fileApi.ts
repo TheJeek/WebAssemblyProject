@@ -1,6 +1,6 @@
 import axios from "axios";
 import JSZip from "jszip";
-import { toast } from "sonner";
+import {toast} from "sonner";
 
 const BASE_URL = `${import.meta.env.VITE_API_URL}/api/files`;
 
@@ -20,8 +20,7 @@ export async function uploadFile(
         toast.error("Upload failed!", {
             description: "Your file has not been uploaded.",
         });
-    }
-    else {
+    } else {
         toast.success("Upload successful", {
             description: "Your file has been uploaded.",
         });
@@ -57,10 +56,18 @@ export async function downloadFile(type: "default" | "map") {
     }
 }
 
+export async function fetchMapFile(filename: string): Promise<string> {
+    return `${BASE_URL}/map/${filename}`;
+}
+
 export async function fetchMapZip(): Promise<Blob> {
     const res = await fetch(`${BASE_URL}/download/map`);
     if (!res.ok) toast.error("Failed to download Traveling Salesman WebAssembly module");
     return res.blob();
+}
+
+export async function fetchDefaultFile(filename: string): Promise<string> {
+    return `${BASE_URL}/default/${filename}`;
 }
 
 export async function fetchDefaultZip(): Promise<Blob> {

@@ -15,8 +15,12 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.io.ByteArrayInputStream;
 import java.io.IOException;
+import java.net.URLConnection;
 import java.util.NoSuchElementException;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipInputStream;
 
 @RestController
 @RequestMapping("/api/files")
@@ -53,6 +57,55 @@ public class FileController {
                     .body(fileDB.getData());
         } catch (NoSuchElementException e) {
             return ResponseEntity.status(HttpStatus.EXPECTATION_FAILED).body(e.getMessage());
+        }
+    }
+
+    @GetMapping("/map/{filename}")
+    public ResponseEntity<byte[]> getMapFile(@PathVariable String filename) {
+        try {
+            StoredFile zipFile = fileService.get(FileType.MAP);
+
+            // Unzip and find the requested file
+            try (ByteArrayInputStream bais = new ByteArrayInputStream(zipFile.getData());
+                 ZipInputStream zis = new ZipInputStream(bais)) {
+
+                ZipEntry entry;
+                while ((entry = zis.getNextEntry()) != null) {
+                    if (entry.getName().equals(filename)) {
+                        byte[] fileData = zis.readAllBytes();
+
+                        // Determine MIME type
+                        String contentType;
+                        if (filename.endsWith(".wasm")) {
+                            contentType = "application/wasm"; // required for streaming compile
+                        } else if (filename.endsWith(".js")) {
+                            contentType = "application/javascript";
+                        } else if (filename.endsWith(".html")) {
+                            contentType = "text/html";
+                        } else if (filename.endsWith(".data")) {
+                            contentType = "application/octet-stream";
+                        } else {
+                            contentType = URLConnection.guessContentTypeFromName(filename);
+                            if (contentType == null) contentType = "application/octet-stream";
+                        }
+
+                        // Return as "blob" via raw bytes with correct MIME type
+                        return ResponseEntity.ok()
+                                .contentType(MediaType.parseMediaType(contentType))
+                                .header("Cross-Origin-Opener-Policy", "cross-origin")
+                                .header("Vary", "Origin")
+                                .body(fileData);
+                    }
+                }
+            }
+
+            // File not found in zip
+            return ResponseEntity.notFound().build();
+
+        } catch (NoSuchElementException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
+        } catch (IOException e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
         }
     }
 
