@@ -8,6 +8,8 @@ package com.hsaalen.backend.controller;
 import com.hsaalen.backend.model.FileType;
 import com.hsaalen.backend.model.StoredFile;
 import com.hsaalen.backend.service.FileStorageService;
+import jakarta.servlet.ServletOutputStream;
+import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -61,51 +63,43 @@ public class FileController {
     }
 
     @GetMapping("/map/{filename}")
-    public ResponseEntity<Object> getMapFile(@PathVariable String filename) {
-        try {
-            StoredFile zipFile = fileService.get(FileType.MAP);
+    public void getMapFile(@PathVariable String filename, HttpServletResponse response) throws IOException {
+        StoredFile zipFile = fileService.get(FileType.MAP);
 
-            // Unzip and find the requested file
-            try (ByteArrayInputStream bais = new ByteArrayInputStream(zipFile.getData());
-                 ZipInputStream zis = new ZipInputStream(bais)) {
+        try (ByteArrayInputStream bais = new ByteArrayInputStream(zipFile.getData());
+             ZipInputStream zis = new ZipInputStream(bais)) {
 
-                ZipEntry entry;
-                while ((entry = zis.getNextEntry()) != null) {
-                    if (entry.getName().equals(filename)) {
-                        byte[] fileData = zis.readAllBytes();
+            ZipEntry entry;
+            boolean found = false;
 
-                        // Determine MIME type
-                        String contentType;
-                        if (filename.endsWith(".wasm")) {
-                            contentType = "application/wasm"; // required for streaming compile
-                        } else if (filename.endsWith(".js")) {
-                            contentType = "application/javascript";
-                        } else if (filename.endsWith(".html")) {
-                            contentType = "text/html";
-                        } else if (filename.endsWith(".data")) {
-                            contentType = "application/octet-stream";
-                        } else {
-                            contentType = URLConnection.guessContentTypeFromName(filename);
-                            if (contentType == null) contentType = "application/octet-stream";
-                        }
+            while ((entry = zis.getNextEntry()) != null) {
+                if (entry.getName().equals(filename)) {
+                    found = true;
 
-                        // Return as "blob" via raw bytes with correct MIME type
-                        return ResponseEntity.ok()
-                                .contentType(MediaType.parseMediaType(contentType))
-                                .header("Cross-Origin-Opener-Policy", "cross-origin")
-                                .header("Vary", "Origin")
-                                .body(fileData);
+                    String contentType = URLConnection.guessContentTypeFromName(filename);
+                    if (contentType == null) contentType = "application/octet-stream";
+
+                    response.setContentType(contentType);
+                    response.setHeader("Cross-Origin-Resource-Policy", "cross-origin");
+                    response.setHeader("Vary", "Origin");
+
+                    // Stream the file directly
+                    byte[] buffer = new byte[8192];
+                    int bytesRead;
+                    ServletOutputStream out = response.getOutputStream();
+
+                    while ((bytesRead = zis.read(buffer)) != -1) {
+                        out.write(buffer, 0, bytesRead);
                     }
+
+                    out.flush();
+                    break;
                 }
             }
 
-            // File not found in zip
-            return ResponseEntity.notFound().build();
-
-        } catch (NoSuchElementException e) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
-        } catch (IOException e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
+            if (!found) {
+                response.sendError(HttpServletResponse.SC_NOT_FOUND, "File not found in ZIP");
+            }
         }
     }
 
