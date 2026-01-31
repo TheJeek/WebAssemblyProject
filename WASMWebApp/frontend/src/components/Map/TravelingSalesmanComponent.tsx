@@ -6,100 +6,76 @@ import {createFileURLs, extractZip, fetchMapZip} from "@/api/fileApi.ts";
 
 type Path = LatLngExpression[];
 
-const BASE_URL = `${import.meta.env.VITE_API_URL}/api/files`;
-
 const TravelingSalesmanComponent: React.FC = () => {
     const containerRef = useRef<HTMLDivElement>(null);
     const qtModuleHook = useTravelingSalesmanModule();
     let [toggleDelete, setToggleDelete] = useState(false);
-    const [qtModule, setQtModule] = useState<any>(null);
+    let qtModule: any = null;
 
     useEffect(() => {
         let urls: Record<string, string> = {};
-        let scriptEl: HTMLScriptElement | null = null;
+        let script: HTMLScriptElement | null = null;
 
         async function initMap() {
-            const BASE_URL = `${import.meta.env.VITE_API_URL}/api/files/map`;
+            const zipBlob = await fetchMapZip();
+            const files = await extractZip(zipBlob);
+            urls = createFileURLs(files);
 
-            try {
-                // Fetch the zip and extract all files
-                const zipBlob = await fetchMapZip();
-                const files = await extractZip(zipBlob);
+            // Load JS from extracted zip
+            script = document.createElement("script");
+            script.src = urls["TSMProject.js"];
+            script.async = true;
 
-                // Keep only JS and HTML in blob URLs
-                const blobsForJS = ["TSMProject.js", "qtloader.js", "TSMProject.html"];
-                const jsFiles: Record<string, Blob> = {};
-                for (const name of blobsForJS) {
-                    if (files[name]) jsFiles[name] = files[name];
+            script.onload = () => {
+                const qtEntry = (window as any).TSMProject_entry;
+                if (!qtEntry) {
+                    console.error("TSMProject_entry not found!");
+                    return;
                 }
 
-                urls = createFileURLs(jsFiles); // blob URLs for JS/HTML
+                // Create Module object
+                const Module: any = {};
+                // Provide the container for Qt windows
+                Module.qtContainerElements = [containerRef.current];
 
-                // Inject TSMProject.js from blob
-                scriptEl = document.createElement("script");
-                scriptEl.src = urls["TSMProject.js"];
-                scriptEl.async = true;
+                // Locate files in the virtual zip (instead of public folder)
+                Module.locateFile = (path: string) => urls[path] || path;
 
-                scriptEl.onload = () => {
-                    // Qt entry point
-                    const qtEntry = (window as any).TSMProject_entry;
-                    if (!qtEntry) {
-                        console.error("TSMProject_entry not found!");
-                        return;
-                    }
-
-                    // Create Module
-                    const Module: any = {};
-                    Module.qtContainerElements = [containerRef.current];
-
-                    // locateFile:
-                    // - WASM via HTTP (preserve COEP/COOP)
-                    // - JS/HTML from blob URLs
-                    Module.locateFile = (path: string) => {
-                        if (!path) {
-                            console.error("Qt locateFile called with undefined!");
-                            return "";
-                        }
-
-                        if (path.endsWith(".wasm")) return `${BASE_URL}/TSMProject.wasm`;
-                        if (urls[path]) return urls[path];
-
-                        console.warn(`Qt locateFile: Unknown file requested: ${path}`);
-                        return "";
-                    };
-
-                    Module.onRuntimeInitialized = () => {
-                        setQtModule(Module);
-                        console.log("Qt WASM initialized");
-                        qtModuleHook.setupCallbacks(Module);
-                        qtModuleHook.onMessageFromQt((msg) => {
-                            console.log("Message from Qt:", msg);
-                        });
-                    };
-
-                    // Initialize Qt
-                    qtEntry(Module);
+                // Callback when WASM runtime is ready
+                Module.onRuntimeInitialized = () => {
+                    qtModule = Module;
+                    console.log("Qt WASM initialized");
+                    qtModuleHook.setupCallbacks(Module);
+                    qtModuleHook.onMessageFromQt((msg) => {
+                        console.log("Message from Qt:", msg);
+                    })
                 };
 
-                document.body.appendChild(scriptEl);
+                // Initialize Qt
+                qtEntry(Module);
+            };
 
-            } catch (err) {
-                console.error("Error initializing Qt WASM:", err);
-            }
+            document.body.appendChild(script);
         }
 
         initMap();
 
         return () => {
-            // Cleanup
-            if (qtModule?.quit) qtModule.quit();
-            if (scriptEl) {
-                document.body.removeChild(scriptEl);
-                scriptEl = null;
+            if (qtModule?.quit) {
+                qtModule.quit();
             }
+            qtModule = null;
+
+            if (script) {
+                document.body.removeChild(script);
+                script = null;
+            }
+
             if (containerRef.current) {
                 containerRef.current.innerHTML = "";
+                containerRef.current = null;
             }
+
             Object.values(urls).forEach(URL.revokeObjectURL);
             urls = {};
         };
