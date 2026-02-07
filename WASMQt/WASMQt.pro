@@ -18,14 +18,12 @@ QMAKE_CFLAGS_RELEASE += -O3 -fno-lto
 SOURCES += \
     algorithm.cpp \
     communicationbridge.cpp \
-    globals.cpp \
     main.cpp \
     manorboy.cpp
 
 HEADERS += \
     algorithm.h \
     communicationbridge.h \
-    globals.h \
     manorboy.h
 
 FORMS +=

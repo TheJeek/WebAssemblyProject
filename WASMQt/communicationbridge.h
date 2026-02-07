@@ -12,9 +12,13 @@ public:
     Q_INVOKABLE void receiveMessageFromJS(const QString &msg);
     Q_INVOKABLE void receiveNumberFromJS(const int &number);
 
+
+    static CommunicationBridge* instance();
+    static void setInstance(CommunicationBridge* inst);
 private:
     qint64 fibRec(int n);
     qint64 fibIter(int n);
+    static CommunicationBridge* staticInstance;
 
 signals:
     void stringReceived(QString msg);

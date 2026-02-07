@@ -582,7 +582,7 @@ void Algorithm::benchmarkCheneyCG(size_t objNum, size_t rootNum, size_t iterNum)
 
     size_t total_heap_bytes = cfg.num_objects * sizeof(Object);
     double total_heap_mb = double(total_heap_bytes) / (1024.0 * 1024.0);
-    qDebug() << "Estimated total heap size:" << total_heap_bytes / (1024 * 1024) << "MB";
+    qDebug() << "Estimated total heap size:" << total_heap_mb << "MB";
 
     HeapBuilder builder(cfg);
     builder.build_heap_dynamic();

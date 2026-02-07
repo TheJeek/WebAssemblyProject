@@ -5,7 +5,6 @@ import QtQuick.Layouts
 
 Page {
     id: communicationPage
-    property var communicationBridge
     title: "Communication Bridge"
     background: Rectangle {
             color: "#616060"
@@ -70,7 +69,7 @@ Page {
                     text: "Send"
                     onClicked: {
                         if (messageInput.text.length > 0) {
-                            communicationBridge.sendMessageToJS(messageInput.text)
+                            cBridge.sendMessageToJS(messageInput.text)
                             log("Qt → JS: " + messageInput.text)
                             messageInput.clear()
                         }
@@ -110,13 +109,15 @@ Page {
         Button {
             text: "Clear Log"
             Layout.alignment: Qt.AlignRight
-            onClicked: logModel.clear()
+            onClicked: {
+                logModel.clear()
+            }
         }
     }
 
     // CONNECTION TO C++
     Connections {
-        target: communicationBridge
+        target: cBridge
 
         function onStringReceived(value) {
             log("JS → Qt (String): " + value)
