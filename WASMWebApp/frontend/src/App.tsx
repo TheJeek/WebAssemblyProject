@@ -2,7 +2,6 @@ import {Home} from "./components/Home.tsx";
 import {Link, Route, Routes} from "react-router-dom";
 import {Button} from "./components/ui/button.tsx";
 import {Toaster} from "@/components/ui/sonner";
-import {QtTest} from "@/components/Benchmark/QtTest.tsx";
 import {FileUpload} from "./components/FileUpload/FileUpload.tsx";
 import TravelingSalesmanComponent from "@/components/Map/TravelingSalesmanComponent.tsx";
 
@@ -33,7 +32,6 @@ function App() {
             </nav>
             <Routes>
                 <Route path="/" element={<Home/>}/>
-                <Route path="/html-test" element={<QtTest/>}/>
                 <Route path={"/upload-download"} element={<FileUpload/>}/>
                 <Route path="/map" element={<TravelingSalesmanComponent/>}/>
             </Routes>

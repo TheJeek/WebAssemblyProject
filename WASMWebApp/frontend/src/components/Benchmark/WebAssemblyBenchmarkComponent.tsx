@@ -1,11 +1,11 @@
 import React, {useEffect, useRef, useState} from "react";
 import {Button} from "../ui/button.tsx";
-import {useQtModule} from "../useQtModule.ts";
+import {useWebAssemblyBenchmarkModule} from "./useWebAssemblyBenchmarkModule.ts";
 import {createFileURLs, extractZip, fetchDefaultZip} from "@/api/fileApi.ts";
 
-export const WebAssemblyBenchmarkComponent : React.FC = () => {
+export const WebAssemblyBenchmarkComponent: React.FC = () => {
     const containerRef = useRef<HTMLDivElement>(null);
-    const qtModuleHook = useQtModule();
+    const qtModuleHook = useWebAssemblyBenchmarkModule();
     const [input, setInput] = useState("");
     let qtModule: any = null;
 
@@ -23,12 +23,12 @@ export const WebAssemblyBenchmarkComponent : React.FC = () => {
             script.src = urls["WASMQt.js"];
             script.async = true;
 
-        script.onload = () => {
-            const qtEntry = (window as any).WASMQt_entry;
-            if (!qtEntry) {
-                console.error("WASMQt_entry not found!");
-                return;
-            }
+            script.onload = () => {
+                const qtEntry = (window as any).WASMQt_entry;
+                if (!qtEntry) {
+                    console.error("WASMQt_entry not found!");
+                    return;
+                }
 
                 // Create Module object
                 const Module: any = {};
