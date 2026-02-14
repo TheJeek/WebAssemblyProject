@@ -29,23 +29,35 @@ ChartView {
 
     function rebuildChart() {
         series.clear()
-        if (data.length < 2) return
+        if (data.length < 1) return
 
-        let maxX = 0
-        let maxY = 0
+        let minX = Number.POSITIVE_INFINITY
+        let maxX = Number.NEGATIVE_INFINITY
+        let maxY = Number.NEGATIVE_INFINITY
 
         for (let i = 0; i < data.length; i++) {
             const point = data[i]
             if (!isFinite(point.x) || !isFinite(point.y)) continue
+
             series.append(point.x, point.y)
+
+            if (point.x < minX) minX = point.x
             if (point.x > maxX) maxX = point.x
             if (point.y > maxY) maxY = point.y
         }
 
-        axisX.min = 0
+        axisX.min = minX
         axisX.max = maxX
+
+        axisX.tickType = ValueAxis.TicksFixed
+        axisX.tickInterval = 1
+        axisX.labelFormat = "%d"
+
         axisY.min = 0
-        axisY.max = maxY * 1.05
+        axisY.max = maxY * 1
+
+        axisY.tickType = ValueAxis.TicksFixed
+        axisY.labelFormat = "%.0f"
     }
 }
 

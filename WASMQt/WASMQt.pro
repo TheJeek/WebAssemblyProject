@@ -12,19 +12,17 @@ CONFIG += c++20 wasm
 QMAKE_CXXFLAGS_RELEASE += -O3 -fno-lto
 QMAKE_CFLAGS_RELEASE += -O3 -fno-lto
 
-# win32:QMAKE_LFLAGS += -Wl,--stack,8388608
- win32:QMAKE_LFLAGS += -Wl,--stack,2097152
+win32:QMAKE_LFLAGS += -Wl,--stack,8388608
+# win32:QMAKE_LFLAGS += -Wl,--stack,2097152
 
 SOURCES += \
     algorithm.cpp \
     communicationbridge.cpp \
-    main.cpp \
-    manorboy.cpp
+    main.cpp
 
 HEADERS += \
     algorithm.h \
-    communicationbridge.h \
-    manorboy.h
+    communicationbridge.h
 
 FORMS +=
 
@@ -41,6 +39,6 @@ contains(QMAKE_CXX, em++) {
     message("Building for Emscripten / WASM")
     QT_WASM_EXTRA_EXPORTED_METHODS = ccall,cwrap,stringToUTF8,lengthBytesUTF8
     QMAKE_LFLAGS += -sEXPORTED_FUNCTIONS=_main,_malloc,_free
-     EMCC_LFLAGS += -s STACK_SIZE=2MB
+     EMCC_LFLAGS += -s STACK_SIZE=8MB
     # EMCC_LFLAGS += -s TOTAL_STACK=32678
 }

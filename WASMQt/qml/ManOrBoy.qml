@@ -25,26 +25,45 @@ Page  {
             spacing: 10
             width: parent.width
 
-            TextField {
-                id: kInput
-                width: 100
-                text: "10"
-                placeholderText: "Enter k"
+            Column {
+                spacing: 2
+                Label { text: "Input for k" }
+                TextField {
+                    id: kInput
+                    width: 100
+                    text: "10"
+                    placeholderText: "Enter k"
+                    inputMethodHints: Qt.ImhDigitsOnly
+                }
+            }
+
+            Column {
+                spacing: 2
+                Label { text: "Repetitions:" }
+                TextField {
+                    id: runsInput
+                    width: 80
+                    placeholderText: "Runs"
+                    inputMethodHints: Qt.ImhDigitsOnly
+                    text: "1"
+                }
             }
 
             Button {
                 text: "Run Single Test"
+                height: 40
                 onClicked: {
                     resultsModel.clear()
-                    algorithm.singleTest(Number(kInput.text))
+                    algorithm.singleTest(Number(kInput.text), Number(runsInput.text))
                 }
             }
 
             Button {
                 text: "Run Incremental Test"
+                height: 40
                 onClicked: {
                     resultsModel.clear()
-                    algorithm.incrementalTest(Number(kInput.text))
+                    algorithm.incrementalTest(Number(kInput.text), Number(runsInput.text))
                 }
             }
         }
@@ -83,7 +102,7 @@ Page  {
                             Text { text: "Stack Before Test: " + model.stackBefore + " bytes" }
                             Text { text: "Stack After Test: " + model.stackAfter + " bytes" }
                             Text { text: "Stack Average Usage with Depth " + model.depth + ": " + model.stackAverage + " bytes" }
-                            Text { text: "Execution Time: " + model.executionTime + " ms" }
+                            Text { text: "Average Execution Time: " + model.executionTime + " ms" }
                             Text { text: "Deployment: " + model.deployment }
                         }
                     }
@@ -94,7 +113,7 @@ Page  {
 
     Connections {
         target: algorithm
-        function onTestResult(k, result, maxDepth, stackBefore, stackAfter, stackAverage, executionTime, deployment, callCount) {
+        function onTestResultMob(k, result, maxDepth, stackBefore, stackAfter, stackAverage, executionTime, deployment, callCount) {
             resultsModel.append({
                 k: k,
                 result: result,

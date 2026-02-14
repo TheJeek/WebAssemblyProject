@@ -12,12 +12,11 @@ public:
     explicit Algorithm(QObject *parent = nullptr);
 
     Q_INVOKABLE QVariantList computeSeriesIterative(int n);
-    Q_INVOKABLE QVariantList computeSeriesRecursive(int n);
+    Q_INVOKABLE QVariantList computeSeriesRecursive(int from, int to, int runs);
     Q_INVOKABLE void requestStatistics();
-    Q_INVOKABLE int singleTest(int k);
-    Q_INVOKABLE void incrementalTest(int n);
-    Q_INVOKABLE void runSieve(int n);
-    Q_INVOKABLE void benchmarkCheneyCG(size_t objNum, size_t rootNum, size_t iterNum);
+    Q_INVOKABLE int singleTest(int k, int runs);
+    Q_INVOKABLE void incrementalTest(int n, int runs);
+    Q_INVOKABLE void benchmarkCheneyCG(size_t iterNum);
 
 private:
     qint64 fibRec(int n, int depth, int& maxDepth);
@@ -26,7 +25,8 @@ private:
     bool isPrime(int n);
 
 signals:
-    void testResult(int k, int result, int maxDepth, uintptr_t stackBefore, uintptr_t stackAfter, uintptr_t stackAverage, QString executionTime, QString deployment, uint64_t callCount);
+    void testResultMob(int k, int result, int maxDepth, uintptr_t stackBefore, uintptr_t stackAfter, uintptr_t stackAverage, QString executionTime, QString deployment, uint64_t callCount);
+    void testResultCheneyGC(int k, int result, int maxDepth, uintptr_t stackBefore, uintptr_t stackAfter, uintptr_t stackAverage, QString executionTime, QString deployment, uint64_t callCount);
     void testFinished();
     void statisticsReceived(
         int sizeInt,

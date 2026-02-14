@@ -25,11 +25,23 @@ Page  {
             spacing: 10
             width: parent.width
 
+            // Runs Input
+            Column {
+                spacing: 2
+                Label { text: "Repetitions:" }
+                TextField {
+                    id: inputFieldIterationNumber
+                    width: 80
+                    inputMethodHints: Qt.ImhDigitsOnly
+                    text: "1"
+                }
+            }
+
             Button {
                 text: "Run Cheney Garbage Collection Simulation"
                 onClicked: {
                     resultsModel.clear()
-                    algorithm.benchmarkCheneyCG(5000000, 1, 10)
+                    algorithm.benchmarkCheneyCG(Number(inputFieldIterationNumber.text))
                 }
             }
         }
@@ -79,7 +91,7 @@ Page  {
 
     Connections {
         target: algorithm
-        function onTestResult(k, result, maxDepth, stackBefore, stackAfter, stackAverage, executionTime, deployment, callCount) {
+        function onTestResultCheneyGC(k, result, maxDepth, stackBefore, stackAfter, stackAverage, executionTime, deployment, callCount) {
             resultsModel.append({
                 k: k,
                 result: result,

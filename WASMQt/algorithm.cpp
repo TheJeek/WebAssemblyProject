@@ -73,10 +73,10 @@ struct DepthGuard {
             int localVar = 0;
             uintptr_t currentAddr = reinterpret_cast<uintptr_t>(&localVar);
             if (!firstCall) {
-                qDebug() << "MaxDepth: " << maxReachedDepth
-                         << ", Approx stack frame: "
-                         << (prevStackAddr > currentAddr ? prevStackAddr - currentAddr : currentAddr - prevStackAddr)
-                         << " bytes";
+                //qDebug() << "MaxDepth: " << maxReachedDepth
+                //         << ", Approx stack frame: "
+                //         << (prevStackAddr > currentAddr ? prevStackAddr - currentAddr : currentAddr - prevStackAddr)
+                //         << " bytes";
             } else {
                 firstCall = false;
             }
@@ -129,73 +129,88 @@ qint64 Algorithm::fibRec(int n, int depth, int& maxDepth) {
 QVariantList Algorithm::computeSeriesIterative(int n)
 {
     QVariantList result;
+
     if (n > 92) {
+        qDebug() << "Algorithm was called with number > 92 which exceeds qint64 limit";
         return result;
     }
-    QElapsedTimer timer;
-    timer.start();
+
+    using clock = std::chrono::high_resolution_clock;
+
+    auto start = clock::now();
 
     for (int i = 0; i <= n; i++) {
         fibIter(i);
-        qint64 duration = timer.nsecsElapsed(); // μs (nanoseconds)
+
+        auto now = clock::now();
+        auto duration = std::chrono::duration_cast<std::chrono::nanoseconds>(now - start).count();
+
         QVariantMap dataPoint;
-        dataPoint.insert("index", QVariant::fromValue(i));
-        //dataPoint.insert("value", QVariant::fromValue(static_cast<double>(value)));
-        dataPoint.insert("duration", QVariant::fromValue(static_cast<double>(duration)));
+        dataPoint.insert("index", i);
+        dataPoint.insert("duration", static_cast<double>(duration));
 
         result.append(dataPoint);
-
-
     }
+
     qDebug() << result.size();
-    timer.invalidate();
     return result;
 }
 
-QVariantList Algorithm::computeSeriesRecursive(int n)
+QVariantList Algorithm::computeSeriesRecursive(int from, int to, int runs)
 {
     int maxDepth = 0;
     maxFreeBytes = 2086096;
     printStackSize();
+    qDebug() << from << to;
     QVariantList result;
-    if (n > 92) {
+
+    if (from < 0 || to > 92 || from > to || runs <= 0) {
+        qDebug() << "Invalid parameters!";
         return result;
     }
-    QElapsedTimer timer;
-    timer.start();
 
-    for (int i = 0; i <= n; i++) {
-        callCount = 0;
-        fibRec(i, 1, maxDepth);
-        qint64 duration = timer.nsecsElapsed(); // μs (nanoseconds)
+    using clock = std::chrono::steady_clock;
+
+    for (int i = from; i <= to; i++) {
+        long long totalDuration = 0;
+
+        for (int r = 0; r < runs; r++) {
+
+            callCount = 0;
+
+            auto start = clock::now();
+            fibRec(i, 1, maxDepth);
+            auto end = clock::now();
+
+            auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count();
+
+            // Skip first run if runs > 1 (cold start)
+            if (runs > 1 && r == 0)
+                continue;
+
+            totalDuration += duration;
+        }
+
+        int divisor = (runs > 1) ? runs - 1 : runs;
+        double averageDuration = static_cast<double>(totalDuration) / divisor;
+
         QVariantMap dataPoint;
-        dataPoint.insert("index", QVariant::fromValue(i));
-        dataPoint.insert("duration", QVariant::fromValue(static_cast<double>(duration)));
-        dataPoint.insert("callCount", QVariant::fromValue(callCount));
+        dataPoint.insert("index", i);
+        dataPoint.insert("duration", averageDuration);
+        dataPoint.insert("callCount", callCount);
+        qDebug() << "Fib(" << i << "), " << "Average duration: " << averageDuration  << ", Function Calls: " << callCount << ", Depth: " << maxDepth;
 
-        //dataPoint.insert("value", QVariant::fromValue(static_cast<double>(value)));
         result.append(dataPoint);
     }
+
     size_t frameSize = sizeof(FibStackFrame);
     size_t estimatedStackUsage = frameSize * maxDepth;
 
+    qDebug() << "Max Depth: " << maxDepth;
     qDebug() << "Frame Size: " << frameSize;
     qDebug() << "Estimated Stack Usage: " << estimatedStackUsage;
-    timer.invalidate();
+
     return result;
-}
-
-bool Algorithm::isPrime(int n) {
-    if (n < 2) return false;
-    for (int i = 2; i*i <= n; i++)
-        if (n % i == 0) return false;
-    return true;
-}
-
-uint64_t Algorithm::factorial(int n) {
-    uint64_t f = 1;
-    for (int i=2; i<=n; i++) f *= i;
-    return f;
 }
 
 void Algorithm::requestStatistics() {
@@ -306,61 +321,75 @@ int A(int k, shared_ptr<Arg> x1, shared_ptr<Arg> x2, shared_ptr<Arg> x3,
 }
 
 
-int loop(int xy) {
-    DepthGuard guard;
-    if (xy <= 0) return 1;
-    return loop(xy-1) + 1;
-}
-
-
-int Algorithm::singleTest(int k) {
-    callCount = 0;
-    currentDepth = 0;
-    maxDepth = 0;
-    maxReachedDepth = 0;
-    maxFreeBytes = 2086096;
-    printStackSize();
+int Algorithm::singleTest(int k, int runs) {
     using clock = std::chrono::high_resolution_clock;
 
+    double totalTime = 0.0;
+    int finalResult = 0;
     auto before = printStackFreeBytes();
-    auto start = clock::now();
 
-    auto result = A(k,
-                    std::make_shared<Const>(1),
-                    std::make_shared<Const>(-1),
-                    std::make_shared<Const>(-1),
-                    std::make_shared<Const>(1),
-                    std::make_shared<Const>(0));
+    for (int i = 0; i < runs; ++i) {
 
-    auto end = clock::now();
-    std::chrono::duration<double, std::milli> elapsed = end - start;
+        // Reset counters before each run
+        callCount = 0;
+        currentDepth = 0;
+        maxDepth = 0;
+        maxReachedDepth = 0;
 
-    QString execTimeStr = QString::number(elapsed.count(), 'f', 3);
+        //set to 8MB in native and wasm is set in .pro file
+        maxFreeBytes = 8388608;
+
+        if (i==0) printStackSize();
+
+        auto start = clock::now();
+
+        auto result = A(k,
+                        std::make_shared<Const>(1),
+                        std::make_shared<Const>(-1),
+                        std::make_shared<Const>(-1),
+                        std::make_shared<Const>(1),
+                        std::make_shared<Const>(0));
+
+        auto end = clock::now();
+
+        std::chrono::duration<double, std::milli> elapsed = end - start;
+
+        // Skip first run if runs > 1
+        if (runs == 1 || i > 0) {
+            totalTime += elapsed.count();
+        }
+
+        finalResult = result;
+    }
+
+    // Calculate average
+    double averageTime = 0.0;
+
+    if (runs == 1) {
+        averageTime = totalTime;
+    } else {
+        averageTime = totalTime / (runs - 1);
+    }
+
+    QString execTimeStr = QString::number(averageTime, 'f', 6);
+
 #ifdef _WIN32
-    emit testResult(k, result, maxDepth, before, maxFreeBytes, ((before-maxFreeBytes)/maxDepth), execTimeStr, "Native", callCount);
+    emit testResultMob(k, finalResult, maxDepth, before, maxFreeBytes, ((before-maxFreeBytes)/maxDepth), execTimeStr, "Native", callCount);
 #endif
 #ifdef __EMSCRIPTEN__
-    emit testResult(k, result, maxDepth, before, maxFreeBytes, ((before-maxFreeBytes)/maxDepth), execTimeStr, "WebAssembly", callCount);
+    emit testResultMob(k, finalResult, maxDepth, before, maxFreeBytes, ((before-maxFreeBytes)/maxDepth), execTimeStr, "WebAssembly", callCount);
 #endif
-    /*
-    qDebug() << "Stack Before:" << before;
-    qDebug() << "Stack After:" << maxFreeBytes;
-    qDebug() << "Average Byte Usage:" << (before-maxFreeBytes)/maxDepth;
-    qDebug() << "Result for k =" << k << ": " << result;
-    qDebug() << "Max recursion depth: " << maxDepth;
-    qDebug() << "Execution time: " << elapsed.count() << " ms";
-    */
-    qDebug() << "Call Count: " << callCount;
-    return result;
+    return finalResult;
 }
 
-void Algorithm::incrementalTest(int n) {
+void Algorithm::incrementalTest(int n, int runs) {
     for (int k = 1; k <= n; ++k)
     {
         try
         {
-            singleTest(k);
+            singleTest(k, runs);
         }
+        //Cannot catch stackoverflow (will simply crash!)
         catch (...)
         {
             qDebug() << "Failure at k=" << k;
@@ -368,43 +397,6 @@ void Algorithm::incrementalTest(int n) {
         }
     }
     emit testFinished();
-}
-
-
-vector<int> sieve(int64_t n) {
-    vector<bool> prime(n + 1, true);
-    for (int64_t p = 2; p * p <= n; p++) {
-        if (prime[p]) {
-            for (int64_t i = p * p; i <= n; i += p)
-                prime[i] = false;
-        }
-    }
-
-    vector<int> res;
-    for (int64_t p = 2; p <= n; p++) {
-        if (prime[p])
-            res.push_back((int)p);
-    }
-    return res;
-}
-
-//Sieve of Eratosthenes
-void Algorithm::runSieve(int n) {
-    /*vector<int> res = sieve(n);
-    int count = 0;
-    for(auto ele : res){
-        //qDebug() << ele << ' ';
-        ++count;
-    }
-    qDebug() << count;
-    */
-    // Memory test (large arrays, shuffle+copy)
-    // forces reads and writes so -O3 won't work
-    int64_t N = 1'000'000'000;
-    std::vector<int> a(N, 1), b(N, 2);
-    for (size_t i = 0; i < N; ++i) {
-        b[i] = a[i] * 2;
-    }
 }
 
 // Cheney CG
@@ -420,9 +412,11 @@ constexpr size_t OBJ_SIZE = sizeof(Object);
 
 // Semispace (heap)
 #ifdef __EMSCRIPTEN__
-size_t HEAP_BYTES = 512ULL * 1024 * 1024; // 512 MB
+// size_t HEAP_BYTES = 512ULL * 1024 * 1024; // 512 MB
+size_t HEAP_BYTES = 128ULL * 1024 * 1024;
 #else
-size_t HEAP_BYTES = 2ULL * 1024 * 1024 * 1024; // 8 GB for native
+//size_t HEAP_BYTES = 2ULL * 1024 * 1024 * 1024; // 2 GB => 1024 (1KB) 1024*1024 (1MB) 1024*1024*1024 (1GB)
+size_t HEAP_BYTES = 128ULL * 1024 * 1024;
 #endif
 
 unsigned char* from_space = new unsigned char[HEAP_BYTES];
@@ -491,6 +485,9 @@ void cheney_gc(Object** roots, size_t root_count) {
         roots[i]->fwd = nullptr; // clear forwarding (cleanup)
 
     // swap from_space and to_space
+    // byte-wise swap is intentionally inefficient
+    // => Real Cheney GC would swap pointers which is faster and more realistic
+    // Performance is not the focus but memory usage behavior is!
     for (size_t i = 0; i < HEAP_BYTES; ++i) {
         unsigned char tmp = from_space[i];
         from_space[i] = to_space[i];
@@ -514,7 +511,7 @@ Object* allocate_object() {
 struct HeapConfig {
     size_t num_objects;      // total objects to create
     size_t num_roots;        // number of roots
-    size_t num_iterations;   // how many times to run GC for timing
+    size_t num_iterations;   // how y times to run GC for timing
 };
 
 class HeapBuilder {
@@ -563,31 +560,44 @@ private:
     vector<Object*> roots;
 };
 
+QString formatBytes(size_t bytes) {
+    const double KB = 1024.0;
+    const double MB = KB * 1024.0;
+    const double GB = MB * 1024.0;
+
+    if (bytes >= GB)
+        return QString::number(bytes / GB, 'f', 2) + " GB";
+    else if (bytes >= MB)
+        return QString::number(bytes / MB, 'f', 2) + " MB";
+    else if (bytes >= KB)
+        return QString::number(bytes / KB, 'f', 2) + " KB";
+    else
+        return QString::number(bytes) + " B";
+}
 
 // heap is allocated dynamically
 // each root is assigned a chain of objects by linking through ref pointers (to simulate live objects)
 // objects in a chain are linked sequentially (last is nullptr) (simple linked list structure)
-void Algorithm::benchmarkCheneyCG(size_t objNum, size_t rootNum, size_t iterNum) {
+void Algorithm::benchmarkCheneyCG(size_t iterNum) {
     using Clock = std::chrono::high_resolution_clock;
 
     HeapConfig cfg;
-    cfg.num_objects = 33554432; // total objects
-    //cfg.num_objects = HEAP_BYTES / sizeof(Object) / 2;
+    cfg.num_objects = 512; // total objects (would be around 512MB)
     cfg.num_roots = 256;           // multiple roots
-    cfg.num_iterations = 10;       // number of benchmark iterations
-
-    qDebug() << "Number of objects:" << cfg.num_objects;
-    qDebug() << "Number of roots:" << cfg.num_roots;
-    qDebug() << "Size of one Object (bytes):" << sizeof(Object);
+    cfg.num_iterations = iterNum;       // number of benchmark iterations
 
     size_t total_heap_bytes = cfg.num_objects * sizeof(Object);
     double total_heap_mb = double(total_heap_bytes) / (1024.0 * 1024.0);
     qDebug() << "Estimated total heap size:" << total_heap_mb << "MB";
+    qDebug() << "Semi-Space (Heap) Size: " << formatBytes(HEAP_BYTES);
+
 
     HeapBuilder builder(cfg);
     builder.build_heap_dynamic();
 
     auto& roots = builder.get_roots();
+
+    std::vector<double> iteration_times_ms; // store times per iteration
 
     for (size_t iter = 0; iter < cfg.num_iterations; ++iter) {
         auto start = Clock::now();
@@ -595,21 +605,40 @@ void Algorithm::benchmarkCheneyCG(size_t objNum, size_t rootNum, size_t iterNum)
         cheney_gc(roots.data(), roots.size());
 
         auto end = Clock::now();
-
         double elapsed_ms = std::chrono::duration<double, std::milli>(end - start).count();
-        double elapsed_ns = elapsed_ms * 1e6;  // convert ms -> ns
+        iteration_times_ms.push_back(elapsed_ms);
 
-        // Average time per object
-        double per_object_ns = elapsed_ns / cfg.num_objects;
+        double per_object_ns = elapsed_ms * 1e6 / cfg.num_objects; // ns per object
 
         qDebug() << "Iteration" << iter + 1 << ":"
-                 << QString::number(elapsed_ms, 'f', 3) << "ms"
-                 << "(" << QString::number(per_object_ns, 'f', 2) << "ns/object)";
+                 << QString::number(elapsed_ms, 'f', 3) << "ms";
     }
 
+    // Calculate mean execution time, skipping first if more than 1 iteration
+    double sum_ms = 0;
+    size_t count = cfg.num_iterations;
+    size_t start_idx = 0;
+    if (cfg.num_iterations > 1) {
+        start_idx = 1; // skip first iteration (cold start)
+        count -= 1;
+    }
+
+    for (size_t i = start_idx; i < iteration_times_ms.size(); ++i) {
+        sum_ms += iteration_times_ms[i];
+    }
+
+    double mean_ms = sum_ms / count;
+    qDebug() << "Mean execution time (excluding first iteration if applicable):"
+             << QString::number(mean_ms, 'f', 3) << "ms";
+
+    // Reset heap for potential next run
     delete[] from_space;
     delete[] to_space;
+    from_space = new unsigned char[HEAP_BYTES];
+    to_space   = new unsigned char[HEAP_BYTES];
+    hp = from_space;
 }
+
 
 
 

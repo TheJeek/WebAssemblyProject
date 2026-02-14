@@ -31,8 +31,8 @@ Page {
             if (metricSelector.currentText === "Call Count") {
                 yValue = point.callCount
             } else {
-                // Duration (ns → ms)
-                yValue = point.duration / 1000000
+                // Duration (ms)
+                yValue = point.duration
             }
 
             series.push({
@@ -56,26 +56,63 @@ Page {
     Column {
         anchors.fill: parent
         anchors.margins: 20
-        spacing: 10
+        spacing: 20
 
         // Controls
         Row {
             id: controlsRow
-            spacing: 10
-            height: 30
+            spacing: 20
+            height: 40
 
-            TextField {
-                id: inputField
-                width: 100
-                placeholderText: "Enter n"
-                inputMethodHints: Qt.ImhDigitsOnly
+            // From Input
+            Column {
+                spacing: 2
+                Label { text: "From:" }
+                TextField {
+                    id: inputFieldFrom
+                    width: 80
+                    placeholderText: "Start"
+                    inputMethodHints: Qt.ImhDigitsOnly
+                    text: "0"
+                }
             }
 
+            // To Input
+            Column {
+                spacing: 2
+                Label { text: "To:" }
+                TextField {
+                    id: inputFieldTo
+                    width: 80
+                    placeholderText: "End"
+                    inputMethodHints: Qt.ImhDigitsOnly
+                }
+            }
+
+            // Runs Input
+            Column {
+                spacing: 2
+                Label { text: "Repetitions:" }
+                TextField {
+                    id: runsField
+                    width: 80
+                    placeholderText: "Runs"
+                    inputMethodHints: Qt.ImhDigitsOnly
+                    text: "1"
+                }
+            }
+
+            // Compute Button
             Button {
                 text: "Compute"
+                width: 100
+                height: 40
                 onClicked: {
                     rawData = algorithm.computeSeriesRecursive(
-                                parseInt(inputField.text))
+                        parseInt(inputFieldFrom.text),
+                        parseInt(inputFieldTo.text),
+                        parseInt(runsField.text)
+                    )
 
                     hasData = true
 
@@ -88,22 +125,20 @@ Page {
                 }
             }
 
-            ComboBox {
-                id: metricSelector
-                model: ["Call Count", "Duration"]
+            // Metric Selector
+            Column {
+                spacing: 2
+                Label { text: "Metric:" }
+                ComboBox {
+                    id: metricSelector
+                    model: ["Call Count", "Duration"]
 
-                onCurrentTextChanged: {
-                    rebuildSeries()
+                    onCurrentTextChanged: rebuildSeries()
                 }
-            }
-
-            ComboBox {
-                id: chartSelector
-                model: ["Line", "Bar"]
             }
         }
 
-        // Chart
+        // Chart (Currently set to only Line Chart)
         Loader {
             id: chartLoader
             anchors.top: controlsRow.bottom
@@ -112,9 +147,7 @@ Page {
             anchors.bottom: parent.bottom
             anchors.topMargin: 10
 
-            source: chartSelector.currentText === "Bar"
-                ? "qrc:/qml/DynamicBarChart.qml"
-                : "qrc:/qml/DynamicLineChart.qml"
+            source: "qrc:/qml/DynamicLineChart.qml"
 
             onLoaded: {
                 if (item) {

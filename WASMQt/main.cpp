@@ -6,7 +6,6 @@
 #include <QQuickView>
 #include <QQmlContext>
 #include "algorithm.h"
-#include "manorboy.h"
 #include "communicationbridge.h"
 #include <QTimer>
 
@@ -15,7 +14,6 @@ int main(int argc, char *argv[])
     QApplication app(argc, argv);
 
     Algorithm algo;
-    ManOrBoy mob;
     CommunicationBridge bridge;
 
     QQuickView viewer;
@@ -23,7 +21,6 @@ int main(int argc, char *argv[])
     QObject::connect(viewer.engine(), &QQmlEngine::quit, &viewer, &QWindow::close);
 
     viewer.engine()->rootContext()->setContextProperty("algorithm", &algo);
-    viewer.engine()->rootContext()->setContextProperty("mob", &mob);
     viewer.engine()->rootContext()->setContextProperty("cBridge", bridge.instance());
 
     viewer.setTitle(QStringLiteral("Comparison WASM vs Native"));
