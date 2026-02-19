@@ -1,9 +1,14 @@
-import {Home} from "./components/Home.tsx";
+/*
+Author: Jonas Lanz
+File: App.tsx
+Defines Navbar with corresponding Links and Routes
+*/
 import {Link, Route, Routes} from "react-router-dom";
 import {Button} from "./components/ui/button.tsx";
 import {Toaster} from "@/components/ui/sonner";
 import {FileUpload} from "./components/FileUpload/FileUpload.tsx";
 import TravelingSalesmanComponent from "@/components/Map/TravelingSalesmanComponent.tsx";
+import {WebAssemblyBenchmarkComponent} from "@/components/Benchmark/WebAssemblyBenchmarkComponent.tsx";
 
 
 function App() {
@@ -14,7 +19,7 @@ function App() {
                     <div className="flex items-center gap-4" style={{width: "100vw"}}>
                         <Link to="/">
                             <Button>
-                                Qt WebAssembly
+                                WASM Benchmark
                             </Button>
                         </Link>
                         <Link to="/map">
@@ -31,7 +36,7 @@ function App() {
                 </div>
             </nav>
             <Routes>
-                <Route path="/" element={<Home/>}/>
+                <Route path="/" element={<WebAssemblyBenchmarkComponent/>}/>
                 <Route path={"/upload-download"} element={<FileUpload/>}/>
                 <Route path="/map" element={<TravelingSalesmanComponent/>}/>
             </Routes>

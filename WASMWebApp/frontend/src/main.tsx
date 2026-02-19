@@ -1,4 +1,4 @@
-import { createRoot } from 'react-dom/client'
+import {createRoot} from 'react-dom/client'
 import './index.css'
 import App from './App.tsx'
 import {BrowserRouter} from "react-router-dom";
@@ -9,7 +9,7 @@ import markerIcon2x from 'leaflet/dist/images/marker-icon-2x.png';
 import markerIcon from 'leaflet/dist/images/marker-icon.png';
 import markerShadow from 'leaflet/dist/images/marker-shadow.png';
 
-// Create a new default icon
+// Create a new default icon for Leaflet
 const DefaultIcon = L.icon({
     iconUrl: markerIcon,
     iconRetinaUrl: markerIcon2x,
@@ -24,9 +24,9 @@ const DefaultIcon = L.icon({
 L.Marker.prototype.options.icon = DefaultIcon;
 
 createRoot(document.getElementById('root')!).render(
-  <React.StrictMode>
-      <BrowserRouter>
-          <App />
-      </BrowserRouter>
-  </React.StrictMode>,
+    <React.StrictMode>
+        <BrowserRouter>
+            <App/>
+        </BrowserRouter>
+    </React.StrictMode>,
 )

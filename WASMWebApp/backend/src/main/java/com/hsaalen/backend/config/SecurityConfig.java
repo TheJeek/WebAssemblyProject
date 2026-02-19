@@ -23,7 +23,7 @@ public class SecurityConfig {
                 .cors(Customizer.withDefaults())
                 .csrf(csrf -> csrf.disable()) // disable CSRF for dev/testing
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/api/files/**").permitAll() // allow file endpoints
+                        .requestMatchers("/api/files/**").permitAll() // allow api file endpoints
                         .requestMatchers("/api/**").permitAll()
                         .anyRequest().authenticated()
                 )

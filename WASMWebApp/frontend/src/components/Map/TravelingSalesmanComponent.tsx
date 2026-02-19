@@ -1,3 +1,9 @@
+/*
+Author: Jonas Lanz
+File: TravelingSalesmanComponent.tsx
+Component to integrate and instantiate TSMProjet WebAssembly Module
+*/
+
 import React, {useEffect, useRef, useState} from "react";
 import {MapContainer, Marker, Polyline, Popup, TileLayer, useMapEvents} from "react-leaflet";
 import {type LatLngExpression} from "leaflet";
@@ -362,8 +368,8 @@ const TravelingSalesmanComponent: React.FC = () => {
         <div style={{display: "flex", height: "100vh", width: "100vw"}}>
             {/* Left: Leaflet map */}
             <div style={{
-                height: "100%",
-                width: "70%",
+                height: "100vh",
+                width: "70vw",
                 margin: "auto",
                 borderRadius: 12,
                 boxShadow: "0 0 10px rgba(0,0,0,0.2)",
@@ -400,7 +406,7 @@ const TravelingSalesmanComponent: React.FC = () => {
                 id="qt-container"
                 style={{
                     width: "20vw",
-                    height: "100%",
+                    height: "100vh",
                     border: "1px solid blue",
                     margin: "auto",
                     display: "flex",

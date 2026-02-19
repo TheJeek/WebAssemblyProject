@@ -1,3 +1,9 @@
+/*
+Author: Jonas Lanz
+File: useWebAssemblyBenchmarkModule.ts
+Typescript Communication Bridge Interface for Qt Project: WASMQt
+*/
+
 import {useCallback, useRef} from "react";
 
 // Hook only handles sending messages to Qt and setting up callbacks

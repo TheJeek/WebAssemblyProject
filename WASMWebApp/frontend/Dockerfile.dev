@@ -1,5 +1,5 @@
 # Author: Jonas Lanz
-# Dockerfile for WebAssembly Web Application frontend
+# Dockerfile for WebAssembly Web Application frontend development mode
 
 # Build stage
 FROM node:20-alpine AS build

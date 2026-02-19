@@ -1,3 +1,9 @@
+/*
+Author: Jonas Lanz
+File: WebAssemblyBenchmarkComponent.tsx
+Component to integrate and instantiate WASMQt WebAssembly Module
+*/
+
 import React, {useEffect, useRef, useState} from "react";
 import {Button} from "../ui/button.tsx";
 import {useWebAssemblyBenchmarkModule} from "./useWebAssemblyBenchmarkModule.ts";
@@ -117,7 +123,7 @@ export const WebAssemblyBenchmarkComponent: React.FC = () => {
                     id="qt-container"
                     style={{
                         width: "90vw",
-                        height: "100vh",
+                        height: "90vh",
                         display: "flex",
                         justifyContent: "center",
                         alignItems: "center",

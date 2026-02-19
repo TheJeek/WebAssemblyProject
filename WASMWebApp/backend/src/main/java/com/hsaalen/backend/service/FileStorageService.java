@@ -5,15 +5,6 @@
  */
 package com.hsaalen.backend.service;
 
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-import java.util.Optional;
-import java.util.Set;
-import java.util.stream.Stream;
-import java.util.zip.GZIPInputStream;
-import java.util.zip.GZIPOutputStream;
-
 import com.hsaalen.backend.model.FileType;
 import com.hsaalen.backend.model.StoredFile;
 import com.hsaalen.backend.repository.StoredFileRepository;
@@ -22,6 +13,13 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 import org.springframework.web.multipart.MultipartFile;
+
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.util.Set;
+import java.util.zip.GZIPInputStream;
+import java.util.zip.GZIPOutputStream;
 
 @Service
 public class FileStorageService {
@@ -53,7 +51,7 @@ public class FileStorageService {
     }
 
     // Since I plan on uploading all WASM files together in a zip this probably won't be used
-    // but potentially for the future
+    // but in case I have more time and implement a single file upload (wasm, js, html)
     private boolean shouldCompress(String contentType) {
         if (contentType == null) return true; //default compressed
 

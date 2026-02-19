@@ -1,3 +1,9 @@
+/*
+Author: Jonas Lanz
+File: fileApi.tsx
+Service for uploading/downloading, extracting zip artifacts and creating URL blobs
+*/
+
 import axios from "axios";
 import JSZip from "jszip";
 import {toast} from "sonner";
@@ -56,18 +62,10 @@ export async function downloadFile(type: "default" | "map") {
     }
 }
 
-export async function fetchMapFile(filename: string): Promise<string> {
-    return `${BASE_URL}/map/${filename}`;
-}
-
 export async function fetchMapZip(): Promise<Blob> {
     const res = await fetch(`${BASE_URL}/download/map`);
     if (!res.ok) toast.error("Failed to download Traveling Salesman WebAssembly module");
     return res.blob();
-}
-
-export async function fetchDefaultFile(filename: string): Promise<string> {
-    return `${BASE_URL}/default/${filename}`;
 }
 
 export async function fetchDefaultZip(): Promise<Blob> {

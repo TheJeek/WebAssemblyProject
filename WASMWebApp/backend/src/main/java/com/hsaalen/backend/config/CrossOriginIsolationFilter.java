@@ -1,3 +1,9 @@
+/**
+ * CrossOriginIsolationFiler.java
+ *
+ * @author Jonas Lanz
+ */
+
 package com.hsaalen.backend.config;
 
 import jakarta.servlet.*;

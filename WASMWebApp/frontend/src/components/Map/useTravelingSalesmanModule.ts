@@ -1,4 +1,11 @@
-import { useRef, useCallback } from "react";
+/*
+Author: Jonas Lanz
+File: useTravelingSalesmanModule.ts
+Typescript Communication Bridge Interface for Qt Project: TSMProject
+*/
+
+
+import {useCallback, useRef} from "react";
 
 // Hook only handles sending messages to Qt and setting up callbacks
 export function useTravelingSalesmanModule() {
@@ -203,7 +210,7 @@ export function useTravelingSalesmanModule() {
 
         // Save/Download Json File from Qt App
         Module.qtCallbacks.downloadJson = (content: string) => {
-            const blob = new Blob([content], { type: "application/json" });
+            const blob = new Blob([content], {type: "application/json"});
             const url = URL.createObjectURL(blob);
 
             const a = document.createElement("a");
@@ -306,7 +313,6 @@ export function useTravelingSalesmanModule() {
     const onAddTrailToMSTFromQt = useCallback((cb: (lat1: number, lon1: number, lat2: number, lon2: number) => void) => {
         callbacksRef.current.addTrailToMSTFromQt = cb;
     }, []);
-
 
 
     // Coordinate to add is directly passed as an argument on the stack

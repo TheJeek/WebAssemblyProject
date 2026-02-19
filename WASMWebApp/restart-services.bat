@@ -1,3 +1,4 @@
+:: Local Deployment script for Windows
 @echo off
 echo Stopping services...
 docker-compose down

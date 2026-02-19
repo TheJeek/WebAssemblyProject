@@ -1,5 +1,10 @@
-import React, { useState } from "react";
-import axios from "axios";
+/*
+Author: Jonas Lanz
+File: FileUpload.ts
+Component for Uploading/Replacing and Downloading TSMProject and WASMQt WebAssembly Modules (Zip)
+*/
+
+import React, {useState} from "react";
 import {downloadFile, uploadFile} from "@/api/fileApi.ts";
 import {Button} from "@/components/ui/button.tsx";
 
@@ -33,7 +38,7 @@ export const FileUpload: React.FC = () => {
                     gap: "15px",
                 }}
             >
-                <h2 style={{ margin: 0 }}>Qt WebAssembly Project WASM zip</h2>
+                <h2 style={{margin: 0}}>Qt WebAssembly Project WASM zip</h2>
 
                 <label
                     style={{
@@ -50,13 +55,13 @@ export const FileUpload: React.FC = () => {
                     Choose File
                     <input
                         type="file"
-                        style={{ display: "none" }}
+                        style={{display: "none"}}
                         onChange={(e) => setDefaultFile(e.target.files?.[0] ?? null)}
                     />
                 </label>
                 {defaultFile && <span>{defaultFile.name}</span>}
 
-                <div style={{ display: "flex", gap: "10px" }}>
+                <div style={{display: "flex", gap: "10px"}}>
                     <Button
                         onClick={() => defaultFile && uploadFile(defaultFile, "default")}
                         disabled={!defaultFile}
@@ -80,7 +85,7 @@ export const FileUpload: React.FC = () => {
                     gap: "15px",
                 }}
             >
-                <h2 style={{ margin: 0 }}>Traveling Salesman Project WASM zip</h2>
+                <h2 style={{margin: 0}}>Traveling Salesman Project WASM zip</h2>
 
                 <label
                     style={{
@@ -97,16 +102,16 @@ export const FileUpload: React.FC = () => {
                     Choose File
                     <input
                         type="file"
-                        style={{ display: "none" }}
+                        style={{display: "none"}}
                         onChange={(e) => setMapFile(e.target.files?.[0] ?? null)}
                     />
                 </label>
                 {mapFile && <span>{mapFile.name}</span>}
 
-                <div style={{ display: "flex", gap: "10px" }}>
+                <div style={{display: "flex", gap: "10px"}}>
                     <Button variant={"default"}
-                        onClick={() => mapFile && uploadFile(mapFile, "map")}
-                        disabled={!mapFile}
+                            onClick={() => mapFile && uploadFile(mapFile, "map")}
+                            disabled={!mapFile}
                     >
                         Upload
                     </Button>
