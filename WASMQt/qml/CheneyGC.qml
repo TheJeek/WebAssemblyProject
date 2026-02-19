@@ -38,12 +38,43 @@ Page  {
             }
 
             Button {
+                height: 40
                 text: "Run Cheney Garbage Collection Simulation"
                 onClicked: {
                     resultsModel.clear()
                     algorithm.benchmarkCheneyCG(Number(inputFieldIterationNumber.text))
                 }
             }
+        }
+
+        // EXPLANATION / NOTES
+        GroupBox {
+            title: "Notes"
+            Layout.fillWidth: true
+
+            ColumnLayout {
+                spacing: 6
+
+                Label {
+                    text: "• Semi Space Size is set at Compile Time (128MB/256MB/512MB/1GB/2GB)."
+                    wrapMode: Text.Wrap
+                }
+
+                Label {
+                    text: "• WebAssembly 32-bit model would support 4GB total but current Browser restrictions only allow for 2GB\n => There are 2 Semi-Spaces so maximum allowed Semi-Space Size for WebAssembly: 1GB"
+                    wrapMode: Text.Wrap
+                }
+
+                Label {
+                    text: "• Cheney's Algorithm is modified to use inefficient byte-wise swap between Semi-Spaces instead of pointer manipulation\n => To better visualize memory growth and stress memory operations"
+                    wrapMode: Text.Wrap
+                }
+
+                Label {
+                    text: "• Native Limit depends on availably system memory"
+                    wrapMode: Text.Wrap
+                }
+        }
         }
 
         // SCROLLABLE RESULTS
@@ -73,15 +104,11 @@ Page  {
                             anchors.fill: parent
                             anchors.margins: 5
                             spacing: 2
-                            Text { text: "k: " + model.k; font.bold: true }
-                            Text { text: "Result: " + model.result }
-                            Text { text: "Max Recursion Depth: " + model.depth }
-                            Text { text: "Call Count: " + model.callCount }
-                            Text { text: "Stack Before Test: " + model.stackBefore + " bytes" }
-                            Text { text: "Stack After Test: " + model.stackAfter + " bytes" }
-                            Text { text: "Stack Average Usage with Depth " + model.depth + ": " + model.stackAverage + " bytes" }
-                            Text { text: "Execution Time: " + model.executionTime + " ms" }
-                            Text { text: "Deployment: " + model.deployment }
+                            Text { text: "Semi-Space Size: " + model.semiSize; font.bold: true }
+                            Text { text: "Total Heap Size Increase: " + model.heapSize }
+                            Text { text: "Iterations: " + model.iterNum }
+                            Text { text: "Average Execution Time: " + model.executionTime }
+                            Text { text: "Deloyment: " + model.deployment }
                         }
                     }
                 }
@@ -91,17 +118,13 @@ Page  {
 
     Connections {
         target: algorithm
-        function onTestResultCheneyGC(k, result, maxDepth, stackBefore, stackAfter, stackAverage, executionTime, deployment, callCount) {
+        function onTestResultCheneyGC(semiSize, heapSize, iterNum, executionTime, deployment) {
             resultsModel.append({
-                k: k,
-                result: result,
-                depth: maxDepth,
-                stackBefore: stackBefore,
-                stackAfter: stackAfter,
-                stackAverage: stackAverage,
-                executionTime: executionTime ? executionTime : "0",
-                callCount: callCount,
-                deployment: deployment ? deployment : "N/A"
+                semiSize: semiSize,
+                heapSize: heapSize,
+                iterNum: iterNum,
+                executionTime: executionTime,
+                deployment: deployment,
             })
         }
     }

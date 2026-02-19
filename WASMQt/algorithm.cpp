@@ -6,7 +6,6 @@
 #include <utility>
 #include <cstdint>
 #include <QDebug>
-#include <random>
 #ifdef __EMSCRIPTEN__
 #include <emscripten/stack.h>
 #endif
@@ -28,7 +27,6 @@ using namespace std;
 uintptr_t printStackFreeBytes() {
 #ifdef __EMSCRIPTEN__
     auto freeBytes = (uintptr_t)emscripten_stack_get_free();
-    //qDebug() << "WASM Stack remaining Bytes:" << freeBytes;
     return freeBytes;
 #endif
 #ifdef _WIN32
@@ -73,10 +71,10 @@ struct DepthGuard {
             int localVar = 0;
             uintptr_t currentAddr = reinterpret_cast<uintptr_t>(&localVar);
             if (!firstCall) {
-                //qDebug() << "MaxDepth: " << maxReachedDepth
-                //         << ", Approx stack frame: "
-                //         << (prevStackAddr > currentAddr ? prevStackAddr - currentAddr : currentAddr - prevStackAddr)
-                //         << " bytes";
+                qDebug() << "MaxDepth: " << maxReachedDepth
+                         << ", Approx stack frame: "
+                         << (prevStackAddr > currentAddr ? prevStackAddr - currentAddr : currentAddr - prevStackAddr)
+                         << " bytes";
             } else {
                 firstCall = false;
             }
@@ -106,17 +104,6 @@ struct FibStackFrame {
     void* retAddr; // approximate
 };
 
-qint64 Algorithm::fibIter(int n) {
-    if (n <= 1) return n;
-    qint64 a = 0, b = 1;
-    for (int i = 2; i <= n; ++i) {
-        qint64 c = a + b;
-        a = b;
-        b = c;
-    }
-    return b;
-}
-
 qint64 Algorithm::fibRec(int n, int depth, int& maxDepth) {
     ++callCount;
     if (depth > maxDepth)
@@ -126,42 +113,11 @@ qint64 Algorithm::fibRec(int n, int depth, int& maxDepth) {
            + fibRec(n - 2, depth + 1, maxDepth);
 }
 
-QVariantList Algorithm::computeSeriesIterative(int n)
-{
-    QVariantList result;
-
-    if (n > 92) {
-        qDebug() << "Algorithm was called with number > 92 which exceeds qint64 limit";
-        return result;
-    }
-
-    using clock = std::chrono::high_resolution_clock;
-
-    auto start = clock::now();
-
-    for (int i = 0; i <= n; i++) {
-        fibIter(i);
-
-        auto now = clock::now();
-        auto duration = std::chrono::duration_cast<std::chrono::nanoseconds>(now - start).count();
-
-        QVariantMap dataPoint;
-        dataPoint.insert("index", i);
-        dataPoint.insert("duration", static_cast<double>(duration));
-
-        result.append(dataPoint);
-    }
-
-    qDebug() << result.size();
-    return result;
-}
-
 QVariantList Algorithm::computeSeriesRecursive(int from, int to, int runs)
 {
     int maxDepth = 0;
     maxFreeBytes = 2086096;
     printStackSize();
-    qDebug() << from << to;
     QVariantList result;
 
     if (from < 0 || to > 92 || from > to || runs <= 0) {
@@ -217,7 +173,11 @@ void Algorithm::requestStatistics() {
     using Struct = struct { char c; int i; };
     using Array = std::array<int, 5>;
     using Pair = std::pair<int, double>;
+    QString deployment = "Native";
 
+#ifdef __EMSCRIPTEN__
+    deployment = "WebAssembly";
+#endif
     emit statisticsReceived(sizeof(int),
                             sizeof(long),
                             sizeof(bool),
@@ -237,7 +197,8 @@ void Algorithm::requestStatistics() {
                             sizeof(Pair),
                             sizeof(uintptr_t),
                             sizeof(size_t),
-                            sizeof(Struct));
+                            sizeof(Struct),
+                            deployment);
 }
 
 /*
@@ -411,12 +372,16 @@ struct Object {
 constexpr size_t OBJ_SIZE = sizeof(Object);
 
 // Semispace (heap)
+// 1024 (1KB) 1024*1024 (1MB) 1024*1024*1024 (1GB)
 #ifdef __EMSCRIPTEN__
+// size_t HEAP_BYTES = 128ULL * 1024 * 1024; // 128 MB
 // size_t HEAP_BYTES = 512ULL * 1024 * 1024; // 512 MB
-size_t HEAP_BYTES = 128ULL * 1024 * 1024;
+size_t HEAP_BYTES = 1ULL * 1024 * 1024 * 1024; // 1GB
 #else
-//size_t HEAP_BYTES = 2ULL * 1024 * 1024 * 1024; // 2 GB => 1024 (1KB) 1024*1024 (1MB) 1024*1024*1024 (1GB)
-size_t HEAP_BYTES = 128ULL * 1024 * 1024;
+// size_t HEAP_BYTES = 128ULL * 1024 * 1024; // 128 MB
+// size_t HEAP_BYTES = 512ULL * 1024 * 1024; // 512 MB
+// size_t HEAP_BYTES = 1ULL * 1024 * 1024 * 1024; // 1GB
+size_t HEAP_BYTES = 2ULL * 1024 * 1024 * 1024; // 2GB
 #endif
 
 unsigned char* from_space = new unsigned char[HEAP_BYTES];
@@ -586,10 +551,10 @@ void Algorithm::benchmarkCheneyCG(size_t iterNum) {
     cfg.num_roots = 256;           // multiple roots
     cfg.num_iterations = iterNum;       // number of benchmark iterations
 
-    size_t total_heap_bytes = cfg.num_objects * sizeof(Object);
-    double total_heap_mb = double(total_heap_bytes) / (1024.0 * 1024.0);
-    qDebug() << "Estimated total heap size:" << total_heap_mb << "MB";
-    qDebug() << "Semi-Space (Heap) Size: " << formatBytes(HEAP_BYTES);
+    QString semiSize = formatBytes(HEAP_BYTES);
+    QString heapSize = formatBytes(2*HEAP_BYTES);
+    qDebug() << "Total heap size:" << heapSize;
+    qDebug() << "Semi-Space (Heap) Size: " << semiSize;
 
 
     HeapBuilder builder(cfg);
@@ -608,10 +573,7 @@ void Algorithm::benchmarkCheneyCG(size_t iterNum) {
         double elapsed_ms = std::chrono::duration<double, std::milli>(end - start).count();
         iteration_times_ms.push_back(elapsed_ms);
 
-        double per_object_ns = elapsed_ms * 1e6 / cfg.num_objects; // ns per object
-
-        qDebug() << "Iteration" << iter + 1 << ":"
-                 << QString::number(elapsed_ms, 'f', 3) << "ms";
+        qDebug() << "Iteration" << iter + 1 << ":" << QString::number(elapsed_ms, 'f', 3) << "ms";
     }
 
     // Calculate mean execution time, skipping first if more than 1 iteration
@@ -628,8 +590,16 @@ void Algorithm::benchmarkCheneyCG(size_t iterNum) {
     }
 
     double mean_ms = sum_ms / count;
-    qDebug() << "Mean execution time (excluding first iteration if applicable):"
-             << QString::number(mean_ms, 'f', 3) << "ms";
+    QString execTime =  QString::number(mean_ms, 'f', 3) + "ms";
+    qDebug() << "Mean execution time (excluding first iteration if applicable):" << QString::number(mean_ms, 'f', 3) << "ms";
+
+    QString deployment = "Native";
+
+#ifdef __EMSCRIPTEN__
+    deployment = "WebAssembly";
+#endif
+
+    emit testResultCheneyGC(semiSize, heapSize, iterNum, execTime, deployment);
 
     // Reset heap for potential next run
     delete[] from_space;

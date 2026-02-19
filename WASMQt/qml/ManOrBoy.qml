@@ -68,10 +68,45 @@ Page  {
             }
         }
 
+        // EXPLANATION / NOTES
+        GroupBox {
+            title: "Notes"
+            Layout.fillWidth: true
+
+            ColumnLayout {
+                spacing: 6
+
+                Label {
+                    text: "• Configured Stack Size for Native and WebAssembly: 8MB"
+                    wrapMode: Text.Wrap
+                }
+
+                Label {
+                    text: "• Recommended k in Native is up to 15"
+                    wrapMode: Text.Wrap
+                }
+
+                Label {
+                    text: "• Recommended k in WebAssembly is up to 13"
+                    wrapMode: Text.Wrap
+                }
+
+                Label {
+                    text: "• Choosing higher k in Native build will result in stack overflow and crash the application."
+                    wrapMode: Text.Wrap
+                }
+
+                Label {
+                    text: "• Choosing higher k in WebAssembly build will result in Browser error: 'Uncaught InternalError: too much recursion'"
+                    wrapMode: Text.Wrap
+                }
+        }
+        }
+
         // SCROLLABLE RESULTS
         ScrollView {
             width: parent.width
-            height: parent.height - 20
+            height: parent.height - 230
             clip: true
 
             Column {

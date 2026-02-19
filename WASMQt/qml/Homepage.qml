@@ -23,7 +23,6 @@ Page {
                     { name: "Communication", source: "CommunicationBridge.qml" },
                     { name: "Statistics", source: "Statistics.qml" },
                     { name: "ManOrBoy", source: "ManOrBoy.qml" },
-                    { name: "Fibonacci Iterative", source: "FibonacciIter.qml" },
                     { name: "Fibonacci Recursive", source: "FibonacciRec.qml" },
                     { name: "Cheney Garbage Collection", source: "CheneyGC.qml" }
                 ]

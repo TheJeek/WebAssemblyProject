@@ -40,7 +40,8 @@ Page {
 
         // HEADER
         Label {
-            text: "Wasm vs Native Type Sizes"
+            id: headerId
+            text: "Type Sizes: "
             font.pixelSize: 22
             Layout.alignment: Qt.AlignHCenter
         }
@@ -49,6 +50,14 @@ Page {
             text: "Values are reported from C++ at runtime"
             color: "#bbbbbb"
             Layout.alignment: Qt.AlignHCenter
+        }
+
+        Button {
+            text: "Fetch Pointer Sizes from C++"
+            Layout.alignment: Qt.AlignLeft
+            onClicked: {
+                algorithm.requestStatistics();
+            }
         }
 
         // TYPE SIZE TABLE
@@ -63,7 +72,7 @@ Page {
                 // Header row
                 RowLayout {
                     Layout.fillWidth: true
-                    spacing: 24
+                    spacing: 200
                     Label { text: "Type"; font.bold: true }
                     Label { text: "Size"; font.bold: true }
                 }
@@ -142,20 +151,12 @@ Page {
         }
         Item { Layout.fillHeight: true }
 
-        Button {
-            text: "Refresh from C++"
-            Layout.alignment: Qt.AlignRight
-            onClicked: {
-                algorithm.requestStatistics();
-            }
-        }
-
     }
 
     Connections {
         target: algorithm
         function onStatisticsReceived(sizeInt, sizeLong, sizeBool, sizeVoidPtr, sizeSharedPtr, sizeUniquePtr, sizeChar, sizeShort, sizeLongLong, sizeFloat,
-                                      sizeDouble, sizeLongDouble, sizeIntPtr, sizeVector, sizeString, sizeArray, sizePair, sizeUIntPtr, sizeSizeT, sizeStruct) {
+                                      sizeDouble, sizeLongDouble, sizeIntPtr, sizeVector, sizeString, sizeArray, sizePair, sizeUIntPtr, sizeSizeT, sizeStruct, deployment) {
             statisticsPage.sizeInt = sizeInt
             statisticsPage.sizeLong = sizeLong
             statisticsPage.sizeBool = sizeBool
@@ -176,6 +177,7 @@ Page {
             statisticsPage.sizeUIntPtr = sizeUIntPtr
             statisticsPage.sizeSizeT = sizeSizeT
             statisticsPage.sizeStruct = sizeStruct
+            headerId.text = "Type Sizes: " + deployment
         }
     }
 }

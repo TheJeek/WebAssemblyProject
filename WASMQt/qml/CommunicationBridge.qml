@@ -12,7 +12,6 @@ Page {
 
     // State
     property string lastString: ""
-    property int lastNumber: 0
 
     ListModel { id: logModel }
 
@@ -33,6 +32,32 @@ Page {
             Layout.alignment: Qt.AlignHCenter
         }
 
+
+        // EXPLANATION / NOTES
+        GroupBox {
+            title: "Notes"
+            Layout.fillWidth: true
+
+            ColumnLayout {
+                spacing: 6
+
+                Label {
+                    text: "• If used in WebAssembly build, will only work correctly if deployed in the Web Frontend."
+                    wrapMode: Text.Wrap
+                }
+
+                Label {
+                    text: "• To send a Message from JS to Qt use the 'Send Message to Qt' window on the Web Frontend."
+                    wrapMode: Text.Wrap
+                }
+
+                Label {
+                    text: "• If used in Native build the output will simply appear in application output."
+                    wrapMode: Text.Wrap
+                }
+        }
+        }
+
         // RECEIVED VALUES
         GroupBox {
             title: "Last Messages From JS"
@@ -43,10 +68,6 @@ Page {
 
                 Label {
                     text: "Last String: " + (lastString || "-")
-                }
-
-                Label {
-                    text: "Last Number: " + lastNumber
                 }
             }
         }
@@ -90,7 +111,6 @@ Page {
                 clip: true
 
                 delegate: Rectangle {
-                    width: parent.width
                     height: textItem.implicitHeight + 8
                     color: index % 2 === 0 ? "#f3f3f3" : "#ffffff"
 
@@ -122,17 +142,6 @@ Page {
         function onStringReceived(value) {
             log("JS → Qt (String): " + value)
             lastString = value
-        }
-
-        function onNumberReceived(value) {
-            log("JS → Qt (Number): " + value)
-            lastNumber = value
-        }
-    }
-
-    onVisibleChanged: {
-        if (visible) {
-            log("Communication test page loaded")
         }
     }
 }

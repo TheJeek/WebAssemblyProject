@@ -136,6 +136,11 @@ Page {
                     onCurrentTextChanged: rebuildSeries()
                 }
             }
+
+            Label {
+                text: "• Recommended Maximum Range: 0 to 50"
+                wrapMode: Text.Wrap
+            }
         }
 
         // Chart (Currently set to only Line Chart)

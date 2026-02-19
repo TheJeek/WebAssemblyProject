@@ -1,6 +1,5 @@
 <RCC>
     <qresource prefix="/">
-        <file>qml/FibonacciIter.qml</file>
         <file>qml/DynamicBarChart.qml</file>
         <file>qml/DynamicLineChart.qml</file>
         <file>qml/UnifiedChart.qml</file>

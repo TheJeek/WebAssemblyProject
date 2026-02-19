@@ -11,7 +11,6 @@ class Algorithm : public QObject
 public:
     explicit Algorithm(QObject *parent = nullptr);
 
-    Q_INVOKABLE QVariantList computeSeriesIterative(int n);
     Q_INVOKABLE QVariantList computeSeriesRecursive(int from, int to, int runs);
     Q_INVOKABLE void requestStatistics();
     Q_INVOKABLE int singleTest(int k, int runs);
@@ -20,13 +19,10 @@ public:
 
 private:
     qint64 fibRec(int n, int depth, int& maxDepth);
-    qint64 fibIter(int n);
-    uint64_t factorial(int n);
-    bool isPrime(int n);
 
 signals:
     void testResultMob(int k, int result, int maxDepth, uintptr_t stackBefore, uintptr_t stackAfter, uintptr_t stackAverage, QString executionTime, QString deployment, uint64_t callCount);
-    void testResultCheneyGC(int k, int result, int maxDepth, uintptr_t stackBefore, uintptr_t stackAfter, uintptr_t stackAverage, QString executionTime, QString deployment, uint64_t callCount);
+    void testResultCheneyGC(QString semiSize, QString heapSize, int iterNum, QString executionTime, QString deployment);
     void testFinished();
     void statisticsReceived(
         int sizeInt,
@@ -48,7 +44,8 @@ signals:
         int sizePair,
         int sizeUIntPtr,
         int sizeSizeT,
-        int sizeStruct
+        int sizeStruct,
+        QString deployment
         );
 };
 
