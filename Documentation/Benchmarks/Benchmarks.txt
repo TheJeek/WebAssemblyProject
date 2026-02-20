@@ -1,0 +1,192 @@
+1. Recursive Fibonacci
+
+|| Native ||
+Configuration:
+Max Recursion Depth: 50
+
+Performance Results
+n	Avg. Duration (ms)	Function Calls	Recursion Depth
+35	17.00			    29,860,703	    35
+36	27.16			    48,315,633	    36
+37	46.20			    78,176,337	    37
+38	78.53			    126,491,971	    38
+39	128.00			    204,668,309	    39
+40	198.76			    331,160,281	    40
+41	337.50			    535,828,591	    41
+42	546.00			    866,988,873	    42
+43	882.64			    1,402,817,465	43
+44	1,432.12		    2,269,806,339	44
+45	2,293.08		    3,672,623,805	45
+46	3,679.14		    5,942,430,145	46
+47	5,961.12		    9,615,053,951	47
+48	9,703.60		    15,557,484,097	48
+49	15,644.90		    25,172,538,049	49
+50	24,015.30		    40,730,022,147	50
+
+
+|| WebAssembly ||
+Configuration:
+Max Recursion Depth: 50
+
+Performance Results
+n	Avg. Duration (ms)	Function Calls	Recursion Depth
+35	41.06			    29,860,703	    35
+36	66.64			    48,315,633	    36
+37	109.06			    78,176,337	    37
+38	175.08			    126,491,971	    38
+39	281.76			    204,668,309	    39
+40	455.14			    331,160,281	    40
+41	734.16			    535,828,591	    41
+42	1,187.68		    866,988,873	    42
+43	1,933.06		    1,402,817,465	43
+44	3,136.26		    2,269,806,339	44
+45	5,062.48		    3,672,623,805	45
+46	8,157.88		    5,942,430,145	46
+47	13,208.10		    9,615,053,951	47
+48	21,928.90		    15,557,484,097	48
+49	35,513.60		    25,172,538,049	49
+50	57,061.40		    40,730,022,147	50
+
+2. Man-or-Boy Test
+
+||Native|| (Max Stack Size: 8 MB)
+
+k	Recursion Depth	Call Count	Avg. Stack Usage	Avg. Duration (ms)
+1	2		        5		    298 B			    0.000298
+2	3		        7		    305 B			    0.000498
+3	4		        9		    309 B			    0.000610
+4	8		        18		    314 B			    0.001556
+5	16		        41		    317 B			    0.002416
+6	32		        88		    318 B			    0.004916
+7	64		        188		    319 B			    0.009882
+8	128		        397		    319 B			    0.023668
+9	256		        833		    319 B			    0.043876
+10	512		        1,750		319 B			    0.086720
+11	1024		    3,695		319 B			    0.171622
+12	2048		    7,840		319 B			    0.357234
+13	4096		    16,691		319 B			    0.714348
+14	8192		    35,617		319 B			    1.573490
+15	16384		    76,163		319 B			    3.402800
+
+k = 16 → Stack Overflow
+(Estimated stack usage exceeds 8 MB)
+
+||WebAssembly|| (Stack Size: 8 MB)
+
+k	Recursion Depth	Call Count	Avg. Stack Usage	Avg. Duration (ms)
+1	2		        5		    104 B			    0.000400
+2	3		        7		    117 B			    0.000400
+3	4		        9		    124 B			    0.000400
+4	8		        18		    124 B			    0.000400
+5	16		        41		    134 B			    0.000400
+6	32		        88		    139 B			    0.001600
+7	64		        188		    141 B			    0.002800
+8	128		        397		    142 B			    0.006000
+9	256		        833		    143 B			    0.011200
+10	512		        1,750		143 B			    0.022800
+11	1024		    3,695		143 B			    0.043600
+12	2048		    7,840		143 B			    0.104800
+13	4096		    16,691		143 B			    0.206000
+
+k = 14 → Stack Overflow (Browser error too much recursion)
+
+3. Cheney Garbage Collection using byte-wise swap
+
+||Native||
+
+Heap Size	Duration (ms)
+128 MB		56.325
+256 MB		114.969
+512 MB		231.939
+1024 MB		470.694
+2048 MB		947.277
+
+||WebAssembly||
+
+Heap Size	Duration (ms)
+128 MB		164.860
+256 MB		334.154
+512 MB		648.235
+1024 MB		1283.982
+2048 MB		Fails (Browser memory limit ~2GB)
+
+4. Traveling Salesman Problem (TSP)
+
+4.1 Brute Force
+
+||Native||
+
+Cities	Average Duration
+6	    2.21 ms
+7	    16.56 ms
+8	    143.16 ms
+9	    1520.23 ms
+10	    16209.66 ms
+
+||WebAssembly||
+
+Cities	Duration
+6	    2.01 ms
+7	    15.20 ms
+8	    130.33 ms
+9	    1139.18 ms
+10	    9737.75 ms
+
+4.2 Dynamic Programming
+
+||WebAssembly||
+
+Cities	Duration
+19	    139.21 ms
+20	    398.34 ms
+21	    655.53 ms
+22	    1360.43 ms
+23	    2847.27 ms
+24	    6332.12 ms
+25	    13626.23 ms
+26	    29041.78 ms
+
+||Native||
+
+Cities	Duration
+19	    93.23 ms
+20	    195.31 ms
+21	    413.07 ms
+22	    891.13 ms
+23	    1888.11 ms
+24	    4113.45 ms
+25	    8870.23 ms
+26	    19108.87 ms
+
+5. City Dataset (Files dp-data.json and bf-data.json)
+Files can be loaded into the Traveling Salesman WebAssembly module.
+
+The following Cities were used:
+
+#	City			    Latitude	Longitude
+1	Berlin			    52.52437	13.41053
+2	Hamburg			    53.55073	9.99302
+3	München			    48.13743	11.57549
+4	Frankfurt am Main	50.11552	8.68417
+5	Stuttgart		    48.78232	9.17702
+6	Düsseldorf		    51.22172	6.77616
+7	Essen			    51.45657	7.01228
+8	Dortmund		    51.51494	7.46600
+9	Dresden			    51.05089	13.73832
+10	Bremen			    53.07582	8.80717
+11	Leipzig			    51.33962	12.37129
+12	Duisburg		    51.43247	6.76516
+13	Köln			    50.93333	6.95000
+14	Bochum			    51.48165	7.21648
+15	Wuppertal		    51.25627	7.14816
+16	Bielefeld		    52.03333	8.53333
+17	Bonn			    50.73438	7.09549
+18	Hannover		    52.37589	9.73201
+19	Nürnberg		    49.45203	11.07675
+20	Mannheim		    49.48746	8.46604
+21	Karlsruhe		    49.00689	8.40365
+22	Wiesbaden		    50.08262	8.23976
+23	Münster			    51.96066	7.62614
+24	Augsburg		    48.36680	10.89870
+25	Kiel			    54.32329	10.12277
+26	Aalen			    48.83670	10.09710

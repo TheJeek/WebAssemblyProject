@@ -1,0 +1,73 @@
+{
+  "brutheForceGenerationPaths": [
+  ],
+  "coordinateList": {
+    "coordinates": [
+      {
+        "latitude": 52.52437,
+        "longitude": 13.41053
+      },
+      {
+        "latitude": 53.55073,
+        "longitude": 9.99302
+      },
+      {
+        "latitude": 48.13743,
+        "longitude": 11.57549
+      },
+      {
+        "latitude": 50.11552,
+        "longitude": 8.68417
+      },
+      {
+        "latitude": 51.05089,
+        "longitude": 13.73832
+      },
+      {
+        "latitude": 52.03333,
+        "longitude": 8.53333
+      },
+      {
+        "latitude": 49.45203,
+        "longitude": 11.07675
+      },
+      {
+        "latitude": 54.32329,
+        "longitude": 10.12277
+      },
+      {
+        "latitude": 48.8367,
+        "longitude": 10.0971
+      },
+      {
+        "latitude": 51.33962,
+        "longitude": 12.37129
+      }
+    ],
+    "stepSize": 0
+  },
+  "dpPath": {
+    "coordinates": [
+    ],
+    "stepSize": 0
+  },
+  "minimumSpanningTreePath": {
+    "coordinates": [
+    ],
+    "stepSize": 0
+  },
+  "nearestNeighborPath": {
+    "coordinates": [
+    ],
+    "stepSize": 0
+  },
+  "optimizedPathListMST": [
+  ],
+  "optimizedPathListNN": [
+  ],
+  "trailListMST": {
+    "stepSize": 0,
+    "trails": [
+    ]
+  }
+}

@@ -86,6 +86,7 @@ Start services with production frontend using:
 using Docker Compose file: `./WASMWebApp/docker-compose.yml`
 
 - Uses `WASMWebApp/frontend/Dockerfile` file to build and run Frontend container image.
+- Frontend pointing to the cloud backend using API URL: `VITE_API_URL=https://hsaalenwasmprojectjl.abrdns.com`.
 - Backend compiled externally and is then deployed in container using `WASMWebApp/backend/Dockerfile`.
 - PostgreSQL runs in a separate container and is declared in Docker Compose file.
 - Docker Compose handles networking.
