@@ -6,7 +6,7 @@ algorithmic benchmarks and integration with modern web architectures.
 
 # Cloud:
 
-- `https://hsaalenwasmprojectjl.abrdns.com/`
+- `https://jeek.abrdns.com/webassembly`
 
 ## Documentation:
 
