@@ -18,7 +18,7 @@ console.log("VITE_APP_ENV:", process.env.VITE_APP_ENV);
 
 // https://vite.dev/config/
 export default defineConfig({
-    base: '/',
+    base: '/webassembly/',
     server: {
         headers: {
             "Cross-Origin-Opener-Policy": "same-origin",

@@ -25,7 +25,7 @@ import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 
 @RestController
-@RequestMapping("/api/files")
+@RequestMapping("/webassembly/api/files")
 public class FileController {
 
     private final FileStorageService fileService;

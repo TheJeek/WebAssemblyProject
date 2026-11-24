@@ -14,7 +14,7 @@ RUN npm install
 COPY . .
 
 # Set build-time environment variables
-ARG VITE_API_URL=https://hsaalenwasmprojectjl.abrdns.com
+ARG VITE_API_URL=https://jeek.abrdns.com/webassembly
 ARG VITE_APP_ENV=production
 
 ENV VITE_API_URL=$VITE_API_URL

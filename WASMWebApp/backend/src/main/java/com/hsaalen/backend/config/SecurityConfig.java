@@ -23,8 +23,8 @@ public class SecurityConfig {
                 .cors(Customizer.withDefaults())
                 .csrf(csrf -> csrf.disable()) // disable CSRF for dev/testing
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/api/files/**").permitAll() // allow api file endpoints
-                        .requestMatchers("/api/**").permitAll()
+                        .requestMatchers("/webassembly/api/files/**").permitAll() // allow api file endpoints
+                        .requestMatchers("/webassembly/api/**").permitAll()
                         .anyRequest().authenticated()
                 )
                 .httpBasic(httpBasic -> httpBasic.disable());
@@ -38,7 +38,7 @@ public class SecurityConfig {
             @Override
             public void addCorsMappings(CorsRegistry registry) {
                 registry.addMapping("/**")
-                        .allowedOrigins("http://localhost:3000", "http://193.197.231.233, https://hsaalenwasmprojectjl.abrdns.com")
+                        .allowedOrigins("http://localhost:3000", "https://jeek.abrdns.com")
                         .allowedMethods("GET", "POST", "PUT", "DELETE")
                         .exposedHeaders("*")
                         .allowCredentials(false);

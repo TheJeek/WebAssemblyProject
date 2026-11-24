@@ -3,7 +3,7 @@ Author: Jonas Lanz
 File: App.tsx
 Defines Navbar with corresponding Links and Routes
 */
-import {Link, Route, Routes} from "react-router-dom";
+import {Link, Route, Routes, Navigate} from "react-router-dom";
 import {Button} from "./components/ui/button.tsx";
 import {Toaster} from "@/components/ui/sonner";
 import {FileUpload} from "./components/FileUpload/FileUpload.tsx";

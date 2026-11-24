@@ -14,7 +14,7 @@ RUN npm install
 COPY . .
 
 # Set build-time environment variables
-ARG VITE_API_URL=http://localhost:8080
+ARG VITE_API_URL=http://localhost:8080/webassembly
 ARG VITE_APP_ENV=development
 
 ENV VITE_API_URL=$VITE_API_URL

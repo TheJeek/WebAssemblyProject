@@ -25,7 +25,7 @@ L.Marker.prototype.options.icon = DefaultIcon;
 
 createRoot(document.getElementById('root')!).render(
     <React.StrictMode>
-        <BrowserRouter>
+        <BrowserRouter basename="/webassembly">
             <App/>
         </BrowserRouter>
     </React.StrictMode>,
